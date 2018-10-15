@@ -60,6 +60,7 @@
 #define RCN_RESTART_ITUNES		"restart_itunes"
 #define RCN_RESTART_TRMD		"restart_trmd"
 #define RCN_RESTART_ARIA		"restart_aria"
+#define RCN_RESTART_BXC			"restart_bxc"
 #define RCN_RESTART_REBOOT		"restart_reboot"
 
 ////////////////////////////////////////////////////////////

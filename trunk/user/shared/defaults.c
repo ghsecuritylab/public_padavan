@@ -722,6 +722,12 @@ struct nvram_pair router_defaults[] = {
 	{ "vpnc_ov_ciph", "3" },
 	{ "vpnc_ov_clzo", "2" },
 	{ "vpnc_ov_atls", "0" },
+#if defined(APP_BXCN) && defined(APP_BXCW)
+	{ "bxc_enable", "0" },
+	{ "bxc_email", "" },
+	{ "bxc_bcode", "" },
+	{ "bxc_bounded", "0" },
+#endif
 
 	{ 0, 0 }
 };

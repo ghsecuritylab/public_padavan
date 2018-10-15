@@ -1183,6 +1183,12 @@ handle_notifications(void)
 			restart_sshd();
 		}
 #endif
+#if defined(APP_BXCN) && defined(APP_BXCW)
+		else if (strcmp(entry->d_name, RCN_RESTART_BXC) == 0)
+		{
+			restart_bxc();
+		}
+#endif
 #if defined(APP_SMBD) || defined(APP_NMBD)
 		else if (strcmp(entry->d_name, RCN_RESTART_NMBD) == 0)
 		{

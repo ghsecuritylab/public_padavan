@@ -233,6 +233,45 @@ restart_sshd(void)
 }
 #endif
 
+#if defined(APP_BXCN) && defined(APP_BXCW)
+int
+is_bxc_run(void)
+{
+	if (pids("bxc-network") && pids("bxc-worker"))
+		return 1;
+	else
+		return 0;
+
+}
+
+void
+stop_bxc(void)
+{
+	eval("/usr/bin/bxc.sh", "stop");
+}
+
+void
+start_bxc(void)
+{
+	int bxc_mode = nvram_get_int("bxc_enable");
+
+	if (bxc_mode == 1)
+		eval("/usr/bin/bxc.sh", "start");
+}
+
+void
+restart_bxc(void)
+{
+	int is_run_before = is_bxc_run();
+	int is_run_after;
+
+	stop_bxc();
+	start_bxc();
+
+	is_run_after = is_bxc_run();
+}
+#endif
+
 void
 start_httpd(int restart_fw)
 {
@@ -412,6 +451,9 @@ start_services_once(int is_ap_mode)
 #if defined(APP_SSHD)
 	start_sshd();
 #endif
+#if defined(APP_BXCN) && defined(APP_BXCW)
+	start_bxc();
+#endif
 	start_vpn_server();
 	start_watchdog();
 	start_infosvr();
@@ -447,6 +489,9 @@ stop_services(int stopall)
 		stop_telnetd();
 #if defined (APP_SSHD)
 		stop_sshd();
+#endif
+#if defined(APP_BXCN) && defined(APP_BXCW)
+	stop_bxc();
 #endif
 		stop_httpd();
 		stop_vpn_server();

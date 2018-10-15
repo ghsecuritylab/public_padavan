@@ -321,7 +321,7 @@ if [ "$CONFIG_FIRMWARE_ENABLE_USB" != "y" ] || [ -z "$CONFIG_USB_SUPPORT" ] ; th
 	func_disable_busybox_param "CONFIG_FEATURE_VOLUMEID_EXT"
 	func_disable_busybox_param "CONFIG_FEATURE_VOLUMEID_XFS"
 	func_disable_busybox_param "CONFIG_FEATURE_VOLUMEID_LINUXSWAP"
-	if [ "$CONFIG_FIRMWARE_INCLUDE_OPENVPN" != "y" ] ; then
+	if [ "$CONFIG_FIRMWARE_INCLUDE_OPENVPN" != "y" ] && [ "$CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK" != "y" ] ; then
 		func_disable_kernel_param "CONFIG_TUN"
 		func_disable_kernel_param "CONFIG_HOTPLUG"
 	fi

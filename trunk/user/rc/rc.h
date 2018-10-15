@@ -512,6 +512,12 @@ int start_services_once(int is_ap_mode);
 void stop_services(int stopall);
 void stop_services_lan_wan(void);
 void stop_misc(void);
+#if defined(APP_BXCN) && defined(APP_BXCW)
+int is_bxc_run(void);
+void stop_bxc(void);
+void start_bxc(void);
+void restart_bxc(void);
+#endif
 
 /* services_ex.c */
 int fill_dnsmasq_servers(void);

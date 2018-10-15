@@ -59,4 +59,6 @@ install:
 	$(MAKE) -C $(SRC_NAME) install DESTDIR=""
 
 romfs:
-
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK),y)
+	$(ROMFSINST) $(SRC_NAME)/src/curl /usr/bin/curl
+endif

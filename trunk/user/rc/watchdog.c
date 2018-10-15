@@ -71,6 +71,8 @@ static int ntpc_tries = 0;
 static int httpd_missing = 0;
 static int dnsmasq_missing = 0;
 
+static int bxc_missing = 0;
+
 static struct itimerval wd_itv;
 
 #if defined (BOARD_GPIO_BTN_RESET)
@@ -980,6 +982,23 @@ dnsmasq_process_check(void)
 	}
 }
 
+/* Sometimes, bxc crashed, try to re-run it */
+static void
+bxc_process_check(void)
+{
+	if (!is_bxc_run())
+		bxc_missing++;
+	else
+		bxc_missing = 0;
+	
+	if (bxc_missing > 1) {
+		bxc_missing = 0;
+		logmessage("watchdog", "bxc-network/bxc-worker is missing, start again!");
+		restart_bxc();
+	}
+}
+
+
 int
 ntpc_updated_main(int argc, char *argv[])
 {
@@ -1080,6 +1099,12 @@ watchdog_on_timer(void)
 	/* DNS/DHCP server check */
 	if (!is_ap_mode)
 		dnsmasq_process_check();
+
+#if defined(APP_BXCN) && defined(APP_BXCW)
+	/* bxc node check */
+	if (nvram_get_int("bxc_enable") == 1)
+		bxc_process_check();
+#endif
 
 	inet_handler(is_ap_mode);
 

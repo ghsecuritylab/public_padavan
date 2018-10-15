@@ -2102,6 +2102,8 @@ start_firewall_ex(void)
 	char wan_ip[16], man_ip[16], lan_ip[16], lan_net[24] = {0};
 	const char *opt_iptables_script = "/opt/bin/update_iptables.sh";
 	const char *int_iptables_script = SCRIPT_POST_FIREWALL;
+	const char *bxc_iptables_script = "/usr/bin/bxc.sh";
+
 
 	unit = 0;
 
@@ -2166,6 +2168,11 @@ start_firewall_ex(void)
 
 	/* IPv6 Filter rules */
 	ip6t_filter_rules(man_if, wan_if, lan_if, logaccept, logdrop, i_tcp_mss);
+#endif
+
+#if defined(APP_BXCN) && defined(APP_BXCW)
+	if (check_if_file_exist(bxc_iptables_script))
+		doSystem("%s updatefw", bxc_iptables_script);
 #endif
 
 	if (check_if_file_exist(int_iptables_script))

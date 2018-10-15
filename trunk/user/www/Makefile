@@ -157,6 +157,10 @@ ifneq ($(STORAGE_ENABLED),y)
 	rm -rf $(INSTALLDIR)/www/images/AiDisk
 	rm -rf $(INSTALLDIR)/www/images/Tree
 endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK),y)
+	rm -f $(INSTALLDIR)/www/vpncli.asp
+	rm -f $(INSTALLDIR)/www/bonuscloud.asp
+endif
 
 clean:
 	@echo "Clean www romfs"

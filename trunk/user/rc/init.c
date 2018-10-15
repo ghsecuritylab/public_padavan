@@ -394,7 +394,7 @@ init_nodes(void)
 #if defined (USE_MTK_AES)
 	mknod("/dev/crypto", S_IFCHR | 0666, makedev(10, 60));
 #endif
-#if defined (APP_OPENVPN)
+#if defined (APP_OPENVPN) || defined (APP_BXCN)
 	/* if kernel CONFIG_HOTPLUG is not set, mdev create /dev/tun instead of /dev/net/tun */
 	if (!check_if_dev_exist("/dev/net/tun")) {
 		mkdir("/dev/net", 0755);
