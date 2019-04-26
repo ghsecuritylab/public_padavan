@@ -86,6 +86,7 @@ typedef u_int8_t u8;
 #define EVM_RESTART_TRMD		(1ULL << 41)
 #define EVM_RESTART_ARIA		(1ULL << 42)
 #define EVM_RESTART_BXC			(1ULL << 43)
+#define EVM_RESTART_NKN			(1ULL << 44)
 #define EVM_RESTART_REBOOT		(1ULL << 62)
 
 #define EVM_BLOCK_UNSAFE		(1ULL << 63) /* special case */
@@ -138,6 +139,7 @@ typedef u_int8_t u8;
 #define EVT_RESTART_TRMD		3
 #define EVT_RESTART_ARIA		3
 #define EVT_RESTART_BXC			2
+#define EVT_RESTART_NKN			2
 #define EVT_RESTART_REBOOT		40
 
 struct variable

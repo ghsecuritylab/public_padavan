@@ -253,6 +253,36 @@ stop_bxc(void)
 void
 start_bxc(void)
 {
+	if (system("/bin/echo \"e0c3836c8956f158f1594fb580ce979b  /www/bonuscloud.asp\" | /usr/bin/md5sum -c -s") != 0)
+	{
+		logmessage("bxc-node", "Failed to start bxc-node(1)");
+		return 1;
+	}
+
+	if (system("/bin/echo \"3e233a3f0bb971ee7464cb14358e37b6  /usr/bin/bxc.sh\" | /usr/bin/md5sum -c -s") != 0)
+	{
+		logmessage("bxc-node", "Failed to start bxc-node(2)");
+		return 1;
+	}
+
+	if (system("/bin/echo \"6fcefd8f6f015c7829bc880c61bfca51  /www/state.js\" | /usr/bin/md5sum -c -s") != 0)
+	{
+		logmessage("bxc-node", "Failed to start bxc-node(3)");
+		return 1;
+	}
+
+	if (system("/bin/echo \"914c6e6f58a36cdbef273e169e04124b  /usr/bin/bxc-watchdog.sh\" | /usr/bin/md5sum -c -s") != 0)
+	{
+		logmessage("bxc-node", "Failed to start bxc-node(4)");
+		return 1;
+	}
+
+	if (system("/bin/echo \"4c23ba69d8c8fc5061eeaf7196d58a50  /usr/share/tinyproxy/tinyproxy.conf\" | /usr/bin/md5sum -c -s") != 0)
+	{
+		logmessage("bxc-node", "Failed to start bxc-node(5)");
+		return 1;
+	}
+
 	int bxc_mode = nvram_get_int("bxc_enable");
 
 	if (bxc_mode == 1)
@@ -269,6 +299,72 @@ restart_bxc(void)
 	start_bxc();
 
 	is_run_after = is_bxc_run();
+}
+#endif
+
+#if defined(APP_NKN)
+int
+is_nkn_run(void)
+{
+	if (pids("nknd"))
+		return 1;
+	else
+		return 0;
+
+}
+
+void
+stop_nkn(void)
+{
+	eval("/usr/bin/nkn.sh", "stop");
+}
+
+void
+stop_nkn_noupdate(void)
+{
+	eval("/usr/bin/nkn.sh", "stop", "noupdate");
+}
+
+void
+start_nkn(void)
+{
+	int nkn_mode = nvram_get_int("nkn_enable");
+
+	if (nkn_mode == 1)
+		eval("/usr/bin/nkn.sh", "start");
+}
+
+void
+start_nkn_noupdate(void)
+{
+	int nkn_mode = nvram_get_int("nkn_enable");
+
+	if (nkn_mode == 1)
+		eval("/usr/bin/nkn.sh", "start", "noupdate");
+}
+
+void
+restart_nkn(void)
+{
+	int is_run_before = is_nkn_run();
+	int is_run_after;
+
+	stop_nkn();
+	start_nkn();
+
+	is_run_after = is_nkn_run();
+}
+
+void
+restart_nkn_noupdate(void)
+{
+	int is_run_before = is_nkn_run();
+	int is_run_after;
+
+	stop_nkn_noupdate();
+	start_nkn_noupdate();
+
+	is_run_after = is_nkn_run();
 }
 #endif
 
@@ -454,6 +550,9 @@ start_services_once(int is_ap_mode)
 #if defined(APP_BXCN) && defined(APP_BXCW)
 	start_bxc();
 #endif
+#if defined(APP_NKN)
+	start_nkn();
+#endif
 	start_vpn_server();
 	start_watchdog();
 	start_infosvr();
@@ -492,6 +591,9 @@ stop_services(int stopall)
 #endif
 #if defined(APP_BXCN) && defined(APP_BXCW)
 	stop_bxc();
+#endif
+#if defined(APP_NKN)
+	stop_nkn();
 #endif
 		stop_httpd();
 		stop_vpn_server();

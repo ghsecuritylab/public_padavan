@@ -701,6 +701,28 @@ ej_dump(int eid, webs_t wp, int argc, char **argv)
 
 	ret = 0;
 
+#if defined(APP_NKN)
+	if (strncmp(file, "nkninfo.", 8)==0) {
+		system("/usr/bin/nkn.sh info > /tmp/nkninfo.log 2>&1");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
+	if (strncmp(file, "nknaddr.", 8)==0) {
+		system("/usr/bin/nkn.sh wallet > /tmp/nknaddr.log");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
+	if (strncmp(file, "nknlogs.", 8)==0) {
+		system("/usr/bin/nkn.sh logs > /tmp/nknlogs.log");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
+	if (strncmp(file, "nknbala.", 8)==0) {
+		system("/usr/bin/nkn.sh balance > /tmp/nknbala.log");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
+	if (strncmp(file, "nknneig.", 8)==0) {
+		system("/usr/bin/nkn.sh neighbor > /tmp/nknneig.log");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
+#endif
 	if (strncmp(file, "httpssl.", 8)==0)
 		snprintf(filename, sizeof(filename), "%s/%s", STORAGE_HTTPSSL_DIR, file+8);
 	else if (strncmp(file, "ovpnsvr.", 8)==0)
@@ -2007,6 +2029,11 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 #else
 	int found_app_bxc = 0;
 #endif
+#if defined(APP_NKN)
+	int found_app_nkn = 1;
+#else
+	int found_app_nkn = 0;
+#endif
 #if defined(APP_MINIDLNA)
 	int found_app_dlna = 1;
 #else
@@ -2194,7 +2221,8 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 		"function found_srv_lprd() { return %d;}\n"
 		"function found_app_sshd() { return %d;}\n"
 		"function found_app_xupnpd() { return %d;}\n"
-		"function found_app_bxc() { return %d;}\n",
+		"function found_app_bxc() { return %d;}\n"
+		"function found_app_nkn() { return %d;}\n",
 		found_utl_hdparm,
 		found_app_ovpn,
 		found_app_dlna,
@@ -2210,7 +2238,8 @@ ej_firmware_caps_hook(int eid, webs_t wp, int argc, char **argv)
 		found_srv_lprd,
 		found_app_sshd,
 		found_app_xupnpd,
-		found_app_bxc
+		found_app_bxc,
+		found_app_nkn
 	);
 
 	websWrite(wp,
@@ -3013,6 +3042,20 @@ apply_cgi(const char *url, webs_t wp)
 		websWrite(wp, "{\"sys_result\": %d}", sys_result);
 		return 0;
 	}
+	else if (!strcmp(value, " TransferNKN "))
+	{
+		int sys_result = 1;
+#if defined(APP_NKN)
+		char *nkn_transfer_passwd = websGetVar(wp, "nkn_transfer_passwd", "");
+		char *nkn_transfer_to = websGetVar(wp, "nkn_transfer_to", "");
+		char *nkn_transfer_amount = websGetVar(wp, "nkn_transfer_amount", "");
+		char *nkn_transfer_fee = websGetVar(wp, "nkn_transfer_fee", "");
+		doSystem("/usr/bin/nkn.sh transfer '%s' '%s' '%s' '%s' >/tmp/nkntran.log 2>&1", nkn_transfer_passwd, nkn_transfer_to, nkn_transfer_amount, nkn_transfer_fee);
+		sys_result = doSystem("grep result /tmp/nkntran.log");
+#endif
+		websWrite(wp, "{\"sys_result\": %d}", sys_result);
+		return 0;
+	}
 	else
 	{
 		char *sid_list, *serviceId;
@@ -3397,6 +3440,25 @@ do_upgrade_fw_cgi(const char *url, FILE *stream)
 }
 
 static void
+do_upload_nknwallet_cgi(const char *url, FILE *stream)
+{
+	if (f_exists(NKN_FIFO_WALLETNAME)) {
+		doSystem("mkdir -p %s", STORAGE_NKN_DIR);
+		doSystem("cp -f %s %s%s", NKN_FIFO_WALLETNAME, STORAGE_NKN_DIR, "/wallet.dat");
+		eval("/sbin/mtd_storage.sh", "save");
+		unlink(NKN_FIFO_WALLETNAME);
+
+	}
+	websApply(stream, "nkn_updatewallet.asp");
+}
+
+static void
+do_refresh_balance_cgi(const char *url, FILE *stream)
+{
+	websApply(stream, "nkn_updatebalance.asp");
+}
+
+static void
 do_restore_nv_cgi(const char *url, FILE *stream)
 {
 	char *upload_file = PROFILE_FIFO_UPLOAD;
@@ -3551,7 +3613,10 @@ struct mime_handler mime_handlers[] = {
 	{ "upgrade.cgi*",    "text/html", no_cache_IE, do_upgrade_fw_post, do_upgrade_fw_cgi, 1 },
 	{ "restore_nv.cgi*", "text/html", no_cache_IE, do_restore_nv_post, do_restore_nv_cgi, 1 },
 	{ "restore_st.cgi*", "text/html", no_cache_IE, do_restore_st_post, do_restore_st_cgi, 1 },
-
+#if defined(APP_NKN)
+	{ "upload_nknwallet.cgi*", "text/html", no_cache_IE, do_upload_nknwallet_post, do_upload_nknwallet_cgi, 1 },
+	{ "refresh_balance.cgi*", "text/html", no_cache_IE, NULL, do_refresh_balance_cgi, 1 },
+#endif
 	{ NULL, NULL, NULL, NULL, NULL, 0 }
 };
 

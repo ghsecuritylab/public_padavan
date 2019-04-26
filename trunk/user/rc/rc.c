@@ -1189,6 +1189,12 @@ handle_notifications(void)
 			restart_bxc();
 		}
 #endif
+#if defined(APP_NKN)
+		else if (strcmp(entry->d_name, RCN_RESTART_NKN) == 0)
+		{
+			restart_nkn();
+		}
+#endif
 #if defined(APP_SMBD) || defined(APP_NMBD)
 		else if (strcmp(entry->d_name, RCN_RESTART_NMBD) == 0)
 		{

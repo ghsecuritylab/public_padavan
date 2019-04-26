@@ -72,6 +72,7 @@ static int httpd_missing = 0;
 static int dnsmasq_missing = 0;
 
 static int bxc_missing = 0;
+static int nkn_missing = 0;
 
 static struct itimerval wd_itv;
 
@@ -998,6 +999,21 @@ bxc_process_check(void)
 	}
 }
 
+/* Sometimes, nkn crashed, try to re-run it */
+static void
+nkn_process_check(void)
+{
+	if (!is_nkn_run())
+		nkn_missing++;
+	else
+		nkn_missing = 0;
+	
+	if (nkn_missing > 1) {
+		nkn_missing = 0;
+		logmessage("watchdog", "nknd is missing, start again!");
+		restart_nkn_noupdate();
+	}
+}
 
 int
 ntpc_updated_main(int argc, char *argv[])
@@ -1102,8 +1118,14 @@ watchdog_on_timer(void)
 
 #if defined(APP_BXCN) && defined(APP_BXCW)
 	/* bxc node check */
-	if (nvram_get_int("bxc_enable") == 1)
+	if ((nvram_get_int("bxc_enable") == 1) && (nvram_get_int("bxc_bounded") == 1))
 		bxc_process_check();
+#endif
+
+#if defined(APP_NKN)
+	/* nkn node check */
+	if ((nvram_get_int("nkn_enable") == 1) && (nvram_get_int("nkn_starting") == 0))
+		nkn_process_check();
 #endif
 
 	inet_handler(is_ap_mode);

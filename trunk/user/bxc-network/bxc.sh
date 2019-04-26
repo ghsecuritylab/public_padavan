@@ -22,6 +22,7 @@ BCODE_NEW=$(nvram get bxc_bcode)
 
 func_bound_bcode()
 {
+	nvram set bxc_bounded=0
 	mkdir -p $BXC_SSL_DIR
 	rm -rf $BXC_SSL_RES $BXC_SSL_CA $BXC_SSL_CRT $BXC_SSL_KEY $BXC_INFO_LOC $EMAIL_LOC $BCODE_LOC
 
@@ -61,13 +62,14 @@ func_info_report()
 	if [ "$info_cur" != "$info_old" ];then
 		/usr/bin/logger -t bxc-node "node info changed: \"$info_old\" --> \"$info_cur\", report info..."
 		echo $info_cur > $BXC_INFO_LOC
-		/sbin/mtd_storage.sh save
 		status_code=`curl -m 10 -k --cacert $BXC_SSL_CA --cert $BXC_SSL_CRT --key $BXC_SSL_KEY -H "Content-Type: application/json" -d "{\"mac\":\"$MACADDR\", \"info\":\"$info_cur\"}" -X PUT -w "\nstatus_code:"%{http_code}"\n" "$BXC_REPORT_URL/$BCODE_NEW" | grep "status_code" | awk -F: '{print $2}'`
 		if [ $status_code -eq 200 ];then
 			/usr/bin/logger -t bxc-node "node info reported success"
 		else
 			/usr/bin/logger -t bxc-node "node info reported failed($status_code)"
+			echo $info_old > $BXC_INFO_LOC
 		fi
+		/sbin/mtd_storage.sh save
 	else
 		/usr/bin/logger -t bxc-node  "node info has not changed: $info_cur"
 	fi
@@ -100,11 +102,17 @@ func_start()
 	/usr/bin/logger -t bxc-worker Start bxc-worker
 	/usr/sbin/bxc-worker >/dev/null 2>&1 &
 
+	/usr/bin/logger -t bxc-watchdog Start bxc-watchdog
+	/usr/bin/bxc-watchdog.sh >/dev/null 2>&1 &
+
 	func_info_report
 }
 
 func_stop()
 {
+	/usr/bin/logger -t bxc-watchdog Stop bxc-watchdog
+	kill -9 "`pidof bxc-watchdog.sh`"
+
 	/usr/bin/logger -t bxc-worker Stop bxc-worker
 	killall -q bxc-worker
 	killall -q bxc-worker

@@ -434,6 +434,7 @@ get_login_mac(void)
 int
 get_login_safe(void)
 {
+	return 1;
 	if (login_ip.len == 0)
 		return 0;
 

@@ -132,7 +132,7 @@ dir_$(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK)	+= libcurl
 dir_$(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK)	+= libjson-c
 
 # BXC-workor shared libs
-dir_$(CONFIG_FIRMWARE_INCLUDE_BXC_WORKOR)	+= libtool
+# dir_$(CONFIG_FIRMWARE_INCLUDE_BXC_WORKOR)	+= libtool
 
 all:
 	for i in $(dir_y) ; do \

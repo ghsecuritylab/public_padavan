@@ -343,7 +343,7 @@ struct nvram_pair router_defaults[] = {
 	// USB related
 	{ "acc_num", "0" },
 	{ "enable_ftp", "0" },
-	{ "enable_samba", "1" },
+	{ "enable_samba", "0" },
 	{ "st_samba_fp", "1" },
 	{ "st_samba_mode", "1" },
 	{ "st_samba_lmb", "1" },
@@ -360,9 +360,9 @@ struct nvram_pair router_defaults[] = {
 	{ "computer_name", BOARD_NAME },
 	{ "pcache_reclaim", "2" },
 	{ "usb3_disable", "0" },
-	{ "u2ec_enable", "1" },
-	{ "lprd_enable", "1" },
-	{ "rawd_enable", "1" },
+	{ "u2ec_enable", "0" },
+	{ "lprd_enable", "0" },
+	{ "rawd_enable", "0" },
 	{ "achk_enable", "0" },
 	{ "nfsd_enable", "0" },
 	{ "optw_enable", "0" },
@@ -727,6 +727,12 @@ struct nvram_pair router_defaults[] = {
 	{ "bxc_email", "" },
 	{ "bxc_bcode", "" },
 	{ "bxc_bounded", "0" },
+#endif
+#if defined(APP_NKN)
+	{ "nkn_enable", "0" },
+	{ "nkn_wallet_address", "" },
+	{ "nkn_wallet_passwd", "" },
+	{ "nkn_beneficiary_address", "" },
 #endif
 
 	{ 0, 0 }

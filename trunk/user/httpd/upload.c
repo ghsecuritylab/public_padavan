@@ -190,6 +190,12 @@ checkcrc_fail:
 }
 
 static int
+check_nkn_wallet(const char *buf, long *file_len)
+{
+	return 0;
+}
+
+static int
 do_upload_file(FILE *stream, int clen, char *bndr, const char *fn, const char *obj_name, check_header_t func_hdr, int hdr_size)
 {
 	FILE *fp = NULL;
@@ -357,4 +363,14 @@ do_restore_st_post(const char *url, FILE *stream, int clen, char *boundary)
 	/* BZ2 not store file length in the header, check boundary marker */
 	snprintf(bndr, sizeof(bndr), "\r\n--%s", boundary);
 	do_upload_file(stream, clen, bndr, upload_file, "file_st", check_header_bz2, 10);
+}
+
+void
+do_upload_nknwallet_post(const char *url, FILE *stream, int clen, char *boundary)
+{
+	const char *upload_file = NKN_FIFO_WALLETNAME;
+	char bndr[128];
+
+	snprintf(bndr, sizeof(bndr), "\r\n--%s", boundary);
+	do_upload_file(stream, clen, bndr, upload_file, "nkn_wallet_file", check_nkn_wallet, 8);
 }

@@ -61,4 +61,5 @@ romfs:
 	$(ROMFSINST) $(SRC_NAME)/src/bxcnetwork/bxc-network /usr/sbin/bxc-network
 	$(ROMFSINST) -p +x /usr/bin/bxc.sh
 	$(ROMFSINST) -p +x /usr/bin/bxc-json.sh
+	$(ROMFSINST) -p +x /usr/bin/bxc-watchdog.sh
 

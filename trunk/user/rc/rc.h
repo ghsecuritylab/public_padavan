@@ -518,6 +518,12 @@ void stop_bxc(void);
 void start_bxc(void);
 void restart_bxc(void);
 #endif
+#if defined(APP_NKN)
+int is_nkn_run(void);
+void stop_nkn(void);
+void start_nkn(void);
+void restart_nkn(void);
+#endif
 
 /* services_ex.c */
 int fill_dnsmasq_servers(void);

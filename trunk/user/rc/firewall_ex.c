@@ -2103,6 +2103,7 @@ start_firewall_ex(void)
 	const char *opt_iptables_script = "/opt/bin/update_iptables.sh";
 	const char *int_iptables_script = SCRIPT_POST_FIREWALL;
 	const char *bxc_iptables_script = "/usr/bin/bxc.sh";
+	const char *nkn_iptables_script = "/usr/bin/nkn.sh";
 
 
 	unit = 0;
@@ -2173,6 +2174,11 @@ start_firewall_ex(void)
 #if defined(APP_BXCN) && defined(APP_BXCW)
 	if (check_if_file_exist(bxc_iptables_script))
 		doSystem("%s updatefw", bxc_iptables_script);
+#endif
+
+#if defined(APP_NKN)
+	if (check_if_file_exist(nkn_iptables_script))
+		doSystem("%s updatefw", nkn_iptables_script);
 #endif
 
 	if (check_if_file_exist(int_iptables_script))

@@ -607,6 +607,12 @@
 			{"bxc_email", "", NULL, EVM_RESTART_BXC},
 			{"bxc_bcode", "", NULL, EVM_RESTART_BXC},
 #endif
+#if defined(APP_NKN)
+			{"nkn_enable", "", NULL, EVM_RESTART_NKN},
+			{"nkn_wallet_address", "", NULL, EVM_RESTART_NKN},
+			{"nkn_wallet_passwd", "", NULL, EVM_RESTART_NKN},
+			{"nkn_beneficiary_address", "", NULL, EVM_RESTART_NKN},
+#endif
 			{"scripts.vpns_client_script.sh", "File", NULL, FALSE},
 			{"scripts.vpnc_server_script.sh", "File", NULL, EVM_RESTART_VPNCLI},
 			{"log_ipaddr", "", NULL, EVM_RESTART_SYSLOG},
@@ -884,6 +890,9 @@
 		{EVM_RESTART_VPNCLI,		EVT_RESTART_VPNCLI,		RCN_RESTART_VPNCLI,	EVM_RESTART_FIREWALL},
 #if defined(APP_BXCN) && defined(APP_BXCW)
 		{EVM_RESTART_BXC,		EVT_RESTART_BXC,		RCN_RESTART_BXC,	0},
+#endif
+#if defined(APP_NKN)
+		{EVM_RESTART_NKN,		EVT_RESTART_NKN,		RCN_RESTART_NKN,	0},
 #endif
 		{EVM_RESTART_HTTPD,		EVT_RESTART_HTTPD,		RCN_RESTART_HTTPD,	EVM_RESTART_FIREWALL},
 		{EVM_RESTART_SSHD,		EVT_RESTART_SSHD,		RCN_RESTART_SSHD,	EVM_RESTART_FIREWALL},
