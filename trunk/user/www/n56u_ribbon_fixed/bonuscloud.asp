@@ -40,7 +40,7 @@ $j(document).ready(function() {
 
 function initial(){
 	show_banner(0);
-	show_menu(4, -1, 0);
+	show_menu(3, -1, 0);
 	show_footer();
 
 	var v = <% nvram_get_x("", "bxc_bounded"); %>;
@@ -218,7 +218,7 @@ function openLink(s) {
                                 </tr>
                                 <tr>
                                     <th><#BXC_VER#></th>
-                                    <td colspan="3"><span id="BXCVER">0.2.2-6p</span></td>
+                                    <td colspan="3"><span id="BXCVER">0.2.2-9p</span></td>
                                 </tr>
                                 <tr>
                                     <th><#BXC_Email#></th>

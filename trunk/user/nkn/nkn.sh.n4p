@@ -1,0 +1,208 @@
+#!/bin/sh
+
+NKN_PASSWD=$(nvram get nkn_wallet_passwd)
+NKN_USB_ROOT=$(cat /proc/mounts | grep 'dev.*.media' | head -n 1 | awk '{print $2}')
+
+func_info()
+{
+	if [ -f "${NKN_USB_ROOT}/nkn/nknc" ]; then
+		killall -q nknc
+		cd ${NKN_USB_ROOT}/nkn
+		./nknc info -s
+	fi
+}
+
+func_wallet()
+{
+	if [ -f /etc/storage/nkn/wallet.dat ]; then
+		grep -o 'Address":".*ProgramHash' /etc/storage/nkn/wallet.dat | cut -d \" -f 3 | xargs echo -n
+	fi
+}
+
+func_logs()
+{
+	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+	if [ ! -z "${NKN_LOG_FILE}" ]; then
+		tail -100 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
+	fi
+}
+
+func_checkupdate()
+{
+	NKN_MD5_LOCAL=$(cat /usr/share/nkn/nkn.md5)
+
+	if [ -f "${NKN_USB_ROOT}/nkn/nkn.tgz" ]; then
+		NKN_MD5_LOCAL=$(md5sum "${NKN_USB_ROOT}/nkn/nkn.tgz" | awk '{print $1}')
+	fi
+
+	NKN_MD5_REMOTE=$(curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 3 --silent -L https://github.com/bettermanbao/nkn/releases/download/latest/nkn.md5)
+
+	if [ "$(echo ${NKN_MD5_REMOTE} | wc -m)" != "33" ]; then
+		if [ -f ${NKN_USB_ROOT}/nkn/nkn.tgz ]; then
+			/usr/bin/logger -t nknd "Update failed, load NKN node from USB"
+			tar -xzvf "${NKN_USB_ROOT}/nkn/nkn.tgz" -C "${NKN_USB_ROOT}/nkn"
+		else
+			/usr/bin/logger -t nknd "Update failed, load NKN node from ROM"
+			tar -xzvf /usr/share/nkn/nkn.tgz -C "${NKN_USB_ROOT}/nkn"
+		fi
+		return
+	fi
+
+	if [ "${NKN_MD5_LOCAL}" = "${NKN_MD5_REMOTE}" ]; then
+		if [ -f "${NKN_USB_ROOT}/nkn/nkn.tgz" ]; then
+			/usr/bin/logger -t nknd "Local NKN node(USB) is up-to-date, continue"
+			tar -xzvf "${NKN_USB_ROOT}/nkn/nkn.tgz" -C "${NKN_USB_ROOT}/nkn"
+		else
+			/usr/bin/logger -t nknd "Local NKN node(ROM) is up-to-date, continue"
+			tar -xzvf /usr/share/nkn/nkn.tgz -C "${NKN_USB_ROOT}/nkn"
+		fi
+	else
+		/usr/bin/logger -t nknd New version of NKN node has been found, updating...
+		curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 10 --silent -L --output ${NKN_USB_ROOT}/nkn/nkn.tgz https://github.com/bettermanbao/nkn/releases/download/latest/nkn.tgz
+		tar -xzvf "${NKN_USB_ROOT}/nkn/nkn.tgz" -C "${NKN_USB_ROOT}/nkn"
+	fi
+}
+
+func_cleanlogs()
+{
+	NKN_LOG_SIZE=$(du "${NKN_USB_ROOT}/nkn/Log" | tail -1 | awk '{print $1}')
+
+	while [ "${NKN_LOG_SIZE}" -gt "50000" ]; do
+		NKN_OLDLOG_FILE=$(ls -lrt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+		/usr/bin/logger -t nknd "Purge NKN node log - "$(basename ${NKN_OLDLOG_FILE})
+		rm -rf "${NKN_OLDLOG_FILE}"
+		NKN_LOG_SIZE=$(du "${NKN_USB_ROOT}/nkn/Log" | tail -1 | awk '{print $1}')
+	done
+}
+
+func_resetChainOnError()
+{
+	NKN_LATEST_LOG=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+
+	if [ ! -z "${NKN_LATEST_LOG}" ]; then
+		NKN_PB_ERROR=$(tail -100 "${NKN_LATEST_LOG}" | grep "error to persist block")
+		if [ ! -z "${NKN_PB_ERROR}" ]; then
+			/usr/bin/logger -t nknd "Found persist block error in logs, reset Chain directory"
+			func_resetChain
+		fi
+	fi
+}
+
+func_resetChain()
+{
+	rm -rf "${NKN_USB_ROOT}/nkn/Chain"
+	rm -rf "${NKN_USB_ROOT}/nkn/ChainDB"
+}
+
+func_mount()
+{
+	modprobe des_generic
+	modprobe cifs CIFSMaxBufSize=64512
+	mkdir -p /media/dev/media/cifs
+	mount -t cifs "$1" /media/dev/media/cifs -o username="$2",password="$3"
+}
+
+func_umount()
+{
+	umount /media/dev/media/cifs
+}
+
+func_start()
+{
+	nvram set nkn_starting=1
+
+	if [ ! -f /etc/storage/nkn/wallet.dat ]; then
+		nvram set nkn_enable=0
+		nvram commit
+		/usr/bin/logger -t nknd NKN wallet not found, disable NKN node
+		exit 1
+	fi
+
+	if [ -z "${NKN_USB_ROOT}" ]; then
+		nvram set nkn_enable=0
+		nvram commit
+		/usr/bin/logger -t nknd USB storage not attached, disable NKN node
+		exit 1
+
+	fi
+
+	if [ -d "${NKN_USB_ROOT}/nkn/Log" ]; then
+		func_cleanlogs
+	else
+		mkdir -p "${NKN_USB_ROOT}/nkn/Log"
+	fi
+
+	if [ -z "$1" ]; then
+		func_checkupdate
+		nvram set nkn_restart_cnt=0
+	else
+		NKN_RESTART_CNT=$(nvram get nkn_restart_cnt)
+		if [ "${NKN_RESTART_CNT}" -gt "10" ]; then
+			/usr/bin/logger -t nknd Too many restart, reset NKN chain
+			func_resetChain
+			nvram set nkn_restart_cnt=0
+		else
+			/usr/bin/logger -t nknd "Restart by watchdog($NKN_RESTART_CNT)"
+			NKN_RESTART_CNT=$((NKN_RESTART_CNT+1))
+			nvram set nkn_restart_cnt=$NKN_RESTART_CNT
+		fi
+	fi
+
+	func_resetChainOnError
+
+	cp -f /etc/storage/nkn/wallet.dat "${NKN_USB_ROOT}/nkn/wallet.dat"
+
+	nvram set nkn_starting=0
+
+	export "PATH=$PATH:${NKN_USB_ROOT}/nkn"
+	cd "${NKN_USB_ROOT}/nkn"
+	/usr/bin/logger -t nknd Start NKN node
+	nknd -p "$NKN_PASSWD" >/dev/null 2>&1 &
+}
+
+func_stop()
+{
+	/usr/bin/logger -t nknd Stop NKN node
+	killall -q nknd
+}
+
+func_updatefw()
+{
+	iptables -I INPUT -p tcp --match multiport --dports 30001:30003 -j ACCEPT
+}
+
+case "$1" in
+start)
+	func_start "$2"
+	;;
+stop)
+	func_stop
+	;;
+info)
+	func_info
+	;;
+wallet)
+	func_wallet
+	;;
+logs)
+	func_logs
+	;;
+updatefw)
+	func_updatefw
+	;;
+reset)
+	func_resetChain
+	;;
+mount)
+	func_mount "$2" "$3" "$4"
+	;;
+umount)
+	func_umount
+	;;
+*)
+	echo "Usage: $0 {start|stop|info|wallet|logs|updatefw|reset}"
+	exit 1
+	;;
+esac
+
+exit 0

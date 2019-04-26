@@ -25,6 +25,13 @@ romfs:
 	echo "ASUSTeK" > $(ROMFS_DIR)/www/httpd_check.htm
 	cd $(ROMFS_DIR)/www && ln -sf /opt/share/www/custom custom
 	cp dict/EN.header $(ROMFS_DIR)/www
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_CN),y)
+	echo "LANG_CN=简体中文" >> $(ROMFS_DIR)/www/EN.header
+	cp dict/CN.dict $(ROMFS_DIR)/www
+	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
+	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
+	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
+endif
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_BR),y)
 	echo "LANG_BR=Brazil" >> $(ROMFS_DIR)/www/EN.header
 	cp dict/BR.dict $(ROMFS_DIR)/www
@@ -157,9 +164,17 @@ ifneq ($(STORAGE_ENABLED),y)
 	rm -rf $(INSTALLDIR)/www/images/AiDisk
 	rm -rf $(INSTALLDIR)/www/images/Tree
 endif
-ifneq ($(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK),y)
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK),y)
 	rm -f $(INSTALLDIR)/www/vpncli.asp
+endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_BXC_NETWORK),y)
 	rm -f $(INSTALLDIR)/www/bonuscloud.asp
+endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_NKN),y)
+	rm -f $(INSTALLDIR)/www/vpnsrv.asp
+endif
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_NKN),y)
+	rm -f $(INSTALLDIR)/www/nkn_*.asp
 endif
 
 clean:

@@ -406,7 +406,9 @@ function is_string2(o,e) {
 
 function validate_ssidchar(ch) {
     if (ch >= 32 && ch <= 126)
-        return true;
+      return true;
+    if (ch >= 0x4e00 && ch <= 0x9fa5)
+      return true;
     return false;
 }
 
@@ -435,6 +437,24 @@ function is_number(o,e) {
     if (keyPressed > 47 && keyPressed < 58) {
         if (keyPressed == 48 && o.length == 0)
             return false;
+        return true;
+    }
+    return false;
+}
+
+function is_number_period(o,e) {
+    e = e || event;
+    if (is_control_key(e))
+        return true;
+    keyPressed = e.keyCode ? e.keyCode : e.which;
+    if (keyPressed == 0)
+        return true;
+    if (keyPressed > 47 && keyPressed < 58) {
+        if (keyPressed == 48 && o.length == 0)
+            return false;
+        return true;
+    }
+    else if (keyPressed == 46) {
         return true;
     }
     return false;
@@ -585,7 +605,7 @@ function validate_ipaddr_final(o, v) {
                 document.form.wan_netmask.value = "255.0.0.0";
             }
             else if (v == 'lan_ipaddr') {
-                document.form.lan_ipaddr.value = "192.168.1.1";
+                document.form.lan_ipaddr.value = "192.168.2.1";
                 document.form.lan_netmask.value = "255.255.255.0";
             }
             o.focus();
@@ -863,7 +883,7 @@ function validate_portrange(o,v) {
             o.select();
             return false;
         }
-    } // wrong port 
+    } // wrong port
     else {
         if (prev == -2) {
             if (num == 65535) o.value = num;

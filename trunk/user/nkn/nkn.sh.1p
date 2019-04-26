@@ -1,0 +1,85 @@
+#!/bin/sh
+
+NKN_PASSWD=$(nvram get nkn_wallet_passwd)
+
+func_info()
+{
+	if [ -f /media/AiDisk_a1/nkn/nknc ]; then
+		cd /media/AiDisk_a1/nkn
+		./nknc info -s
+	fi
+}
+
+func_wallet()
+{
+	if [ -f /etc/storage/nkn/wallet.dat ]; then
+		grep -o 'Address":".*ProgramHash' /etc/storage/nkn/wallet.dat | cut -d \" -f 3 | xargs echo -n
+	fi
+}
+
+func_start()
+{
+	if [ ! -f /etc/storage/nkn/wallet.dat ]; then
+		nvram set nkn_enable=0
+		nvram commit
+		/usr/bin/logger -t nknd NKN wallet not found, disable NKN node
+		exit 1
+	fi
+
+	if [ ! -d /media/AiDisk_a1 ]; then
+		nvram set nkn_enable=0
+		nvram commit
+		/usr/bin/logger -t nknd USB storage not attached, disable NKN node
+		exit 1
+
+	fi
+
+	rm -rf /media/AiDisk_a1/nkn/Log
+	mkdir -p /media/AiDisk_a1/nkn/Log
+
+	if [ ! -f /media/AiDisk_a1/nkn/nknd ]; then
+		tar -xzvf /usr/share/nkn/nkn.tgz -C /media/AiDisk_a1/nkn
+	fi
+
+	cp -f /etc/storage/nkn/wallet.dat /media/AiDisk_a1/nkn/wallet.dat
+
+	export PATH=$PATH:/media/AiDisk_a1/nkn
+	cd /media/AiDisk_a1/nkn
+	/usr/bin/logger -t nknd Start NKN node
+	nknd -p $NKN_PASSWD >/dev/null 2>&1 &
+}
+
+func_stop()
+{
+	/usr/bin/logger -t nknd Stop NKN node
+	killall -q nknd
+}
+
+func_updatefw()
+{
+	iptables -I INPUT -p tcp --match multiport --dports 30001:30003 -j ACCEPT
+}
+
+case "$1" in
+start)
+	func_start
+	;;
+stop)
+	func_stop
+	;;
+info)
+	func_info
+	;;
+wallet)
+	func_wallet
+	;;
+updatefw)
+	func_updatefw
+	;;
+*)
+	echo "Usage: $0 {start|stop|info|wallet|updatefw}"
+	exit 1
+	;;
+esac
+
+exit 0

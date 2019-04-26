@@ -402,9 +402,9 @@ menuL2_title = new Array("", "<#menu5_11#>", "<#menu5_12#>", "<#menu5_2#>", "<#m
 menuL2_link  = new Array("", tablink[0][1], tablink[1][1], tablink[2][1], tablink[3][1], tablink[4][1], tablink[5][1], tablink[6][1], tablink[7][1], tablink[8][1], tablink[9][1]);
 
 //Level 1 Menu in Gateway, Router mode
-menuL1_title = new Array("", "<#menu1#>", "<#menu3#>", "<#menu2#>", "<#menu7#>", "<#menu4#>", "<#menu5_8#>", "<#menu5#>");
-menuL1_link = new Array("", "index.asp", "aidisk.asp", "vpnsrv.asp", "bonuscloud.asp", "Main_TrafficMonitor_realtime.asp", "Advanced_System_Info.asp", "as.asp");
-menuL1_icon = new Array("", "icon-home", "icon-hdd", "icon-retweet", "icon-globe", "icon-tasks", "icon-random", "icon-wrench");
+menuL1_title = new Array("", "<#menu1#>", "<#menu3#>", "<#menu7#>", "<#menu8#>", "<#menu4#>", "<#menu5_8#>", "<#menu5#>");
+menuL1_link = new Array("", "index.asp", "aidisk.asp", "bonuscloud.asp", "nkn_node.asp", "Main_TrafficMonitor_realtime.asp", "Advanced_System_Info.asp", "as.asp");
+menuL1_icon = new Array("", "icon-home", "icon-hdd", "icon-globe", "icon-fire", "icon-tasks", "icon-random", "icon-wrench");
 
 function show_menu(L1, L2, L3){
 	var i;
@@ -432,16 +432,12 @@ function show_menu(L1, L2, L3){
 		menuL2_title[5] = "";
 		menuL1_link[2] = "";  //remove AiDisk;
 		menuL1_title[2] = "";
-		menuL1_link[3] = "";  //remove VPN svr
-		menuL1_title[3] = "";
 		
 		if (lan_proto == '1'){
 			tabtitle[2].splice(2,1);
 			tablink[2].splice(2,1);
 		}
 	}else{
-		menuL1_link[3] = "";  //remove VPN svr
-		menuL1_title[3] = "";
 
 		if(sw_mode == '4'){
 			tablink[3].splice(3,2);
@@ -504,7 +500,12 @@ function show_menu(L1, L2, L3){
 	}
 
 	if(!found_app_bxc()){
-		menuL1_link[4] = "";  //remove BXC
+		menuL1_link[3] = "";  //remove BXC
+		menuL1_title[3] = "";
+	}
+
+	if(!found_app_nkn()){
+		menuL1_link[4] = "";  //remove NKN
 		menuL1_title[4] = "";
 	}
 

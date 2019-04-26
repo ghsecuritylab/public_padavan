@@ -71,3 +71,7 @@ romfs:
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE),y)
 	$(ROMFSINST) $(SRC_NAME)/apps/openssl /usr/bin/openssl
 endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_CA_BUNDLE),y)
+	mkdir -p $(ROMFSDIR)/etc/ssl/certs
+	$(ROMFSINST) /etc_ro/ca-certificates.crt
+endif
