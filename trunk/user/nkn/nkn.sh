@@ -36,12 +36,7 @@ func_neighbor()
 		killall -q nknc
 		cd ${NKN_USB_ROOT}/nkn
 		echo -e "RemoteAddress\t\tHeight\t\tRTT\tSyncState"
-		./nknc info --neighbor | awk -F : '
-			/addr/ { gsub("//","", $3); printf("%s\t\t",$3) }
-			/height/ { gsub(" ","", $2);gsub(",","", $2); printf("%s\t\t",$2) }
-			/roundTripTime/ { gsub(" ","", $2);gsub(",","", $2); printf("%s\t",$2) }
-			/syncState/ { gsub(" ","", $2);gsub(",","", $2);gsub("\"","", $2); printf("%s\n",$2) }
-			'
+		./nknc info --neighbor | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
 	else
 		echo "NKN node is not running."
 	fi
@@ -50,7 +45,7 @@ func_neighbor()
 func_wallet()
 {
 	if [ -f /etc/storage/nkn/wallet.dat ]; then
-		NKN_WADDR_CUR=$(grep -o 'Address":".*ProgramHash' /etc/storage/nkn/wallet.dat | cut -d \" -f 3 | xargs echo -n)
+		NKN_WADDR_CUR=$(jq -r '.Address' /etc/storage/nkn/wallet.dat | xargs echo -n)
 		if [ "${NKN_WADDR_CUR:0:3}" != "NKN" ] && [ -f "${NKN_USB_ROOT}/nkn/nknc" ] && [ ! -z "$NKN_PASSWD" ]; then
 			killall -q nknc
 			cd ${NKN_USB_ROOT}/nkn
@@ -72,9 +67,9 @@ func_balance()
 		killall -q nknc
 		cd ${NKN_USB_ROOT}/nkn
 		if [ -z "$1" ]; then
-			./nknc info --balance "$NKN_WADDR" | grep amount | cut -d \" -f 4 | xargs echo -n
+			./nknc info --balance "$NKN_WADDR" | jq -r '.result.amount' | xargs echo -n
 		else
-			./nknc info --balance "$1" | grep amount | cut -d \" -f 4 | xargs echo -n
+			./nknc info --balance "$1" | jq -r '.result.amount' | xargs echo -n
 		fi
 	else
 		echo -n "n/a"
