@@ -714,6 +714,10 @@ ej_dump(int eid, webs_t wp, int argc, char **argv)
 		system("/usr/bin/nkn.sh logs > /tmp/nknlogs.log");
 		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
 	} else
+	if (strncmp(file, "nknlogp.", 8)==0) {
+		system("/usr/bin/nkn.sh logs_pre > /tmp/nknlogp.log");
+		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
+	} else
 	if (strncmp(file, "nknbala.", 8)==0) {
 		system("/usr/bin/nkn.sh balance > /tmp/nknbala.log");
 		snprintf(filename, sizeof(filename), "%s/%s", "/tmp", file);
@@ -3056,6 +3060,14 @@ apply_cgi(const char *url, webs_t wp)
 		websWrite(wp, "{\"sys_result\": %d}", sys_result);
 		return 0;
 	}
+	else if (!strcmp(value, " ResetNKN "))
+	{
+#if defined(APP_NKN)
+		doSystem("/usr/bin/nkn.sh reset");
+		websRedirect(wp, current_url);
+		return 0;
+#endif
+	}
 	else
 	{
 		char *sid_list, *serviceId;
@@ -3687,6 +3699,28 @@ ej_netdev(int eid, webs_t wp, int argc, char **argv)
 	return 0;
 }
 
+#if defined(APP_NKN)
+// nkn monitor
+static int
+ej_nknmon(int eid, webs_t wp, int argc, char **argv)
+{
+	int nknd_cpu = 0;
+	nknd_cpu = eval("/usr/bin/nknc-info.sh", "cpu");
+
+	int nknd_memory = 0;
+	nknd_memory = eval("/usr/bin/nknc-info.sh", "memory");
+
+	int nknd_connections = 0;
+	nknd_connections = eval("/usr/bin/nknc-info.sh", "connections");
+
+	fprintf(wp, "nknmon={CPU: %d, MEMORY: %d, CONNECTIONS: %d};", nknd_cpu, nknd_memory, nknd_connections);
+
+	fflush(wp);
+
+	return 0;
+}
+#endif
+
 static int
 ej_bandwidth(int eid, webs_t wp, int argc, char **argv)
 {
@@ -3838,6 +3872,9 @@ struct ej_handler ej_handlers[] =
 	{ "json_system_status", ej_system_status_hook},
 
 	{ "netdev", ej_netdev},
+#if defined(APP_NKN)
+	{ "nknmon", ej_nknmon},
+#endif
 	{ "bandwidth", ej_bandwidth},
 	{ "nvram", ej_backup_nvram},
 

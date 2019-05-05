@@ -3,6 +3,7 @@ all:
 romfs:
 	$(ROMFSINST) -p +x /usr/bin/nkn.sh
 	$(ROMFSINST) -p +x /usr/bin/nkn-updater.sh
+	$(ROMFSINST) -p +x /usr/bin/nknc-info.sh
 ifeq ($(CONFIG_FIRMWARE_INCLUDE_NKN_WITH_BINARY),y)
 	mkdir -p $(ROMFSDIR)/usr/share/nkn
 	$(ROMFSINST) /usr/share/nkn/nkn.tgz

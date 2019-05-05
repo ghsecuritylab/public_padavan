@@ -34,7 +34,23 @@
 		location.href = "/nkn_wallet.asp";
             else if(id == "tab_nkn_neighbor")
 		location.href = "/nkn_neighbor.asp";
+            else if(id == "tab_nkn_monitor")
+		location.href = "/nkn_monitor.asp";
             return false;
+        }
+
+        function showLogp() {
+            document.getElementById("btn_logs").disabled = false;
+            document.getElementById("btn_logp").disabled = true;
+            document.getElementById("ta_nkn_logp").style.display = "inline";
+            document.getElementById("ta_nkn_logs").style.display = "none";
+        }
+
+        function showLogs() {
+            document.getElementById("btn_logs").disabled = true;
+            document.getElementById("btn_logp").disabled = false;
+            document.getElementById("ta_nkn_logp").style.display = "none";
+            document.getElementById("ta_nkn_logs").style.display = "inline";
         }
     </script>
 
@@ -45,6 +61,8 @@
             show_banner(0);
             show_menu(4, -1, 0);
             show_footer();
+
+            document.getElementById("btn_logs").disabled = true;
         }
     </script>
 
@@ -119,6 +137,11 @@
                                                         <#NKN_Neighbor#>
                                                     </a>
                                                 </li>
+                                                <li>
+                                                    <a href="javascript:void(0)" id="tab_nkn_monitor">
+                                                        <#NKN_MONITOR#>
+                                                    </a>
+                                                </li>
                                                 <li class="active">
                                                     <a href="javascript:void(0)" id="tab_nkn_logs">
                                                         <#NKN_Logs#>
@@ -133,11 +156,18 @@
                                         </div>
                                         <table width="100%" cellpadding="4" cellspacing="0" class="table">
                                             <tr>
-                                                <td style="border-top: 0 none; padding-bottom: 0px;">
-                                                    <textarea rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px;" readonly="readonly" wrap="off"><% nvram_dump("nknlogs.log", ""); %></textarea>
+                                                <td colspan="3" style="border-top: 0 none; padding-bottom: 0px;">
+                                                    <textarea id="ta_nkn_logs" rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px;" readonly="readonly" wrap="off"><% nvram_dump("nknlogs.log", ""); %></textarea>
+                                                    <textarea id="ta_nkn_logp" rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px; display: none;" readonly="readonly" wrap="off"><% nvram_dump("nknlogp.log", ""); %></textarea>
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <td width="15%" style="text-align: left; padding-bottom: 0px;">
+                                                    <input name="btn_logp" id="btn_logp" type="button" onClick="showLogp();" value="<#NKN_Show_Logp#>" class="btn btn-info" style="width: 170px">
+                                                </td>
+                                                <td width="15%" style="text-align: left; padding-bottom: 0px;">
+                                                    <input name="btn_logs" id="btn_logs" type="button" onClick="showLogs();" value="<#NKN_Show_Logs#>" class="btn btn-info" style="width: 170px">
+                                                </td>
                                                 <td style="text-align: right; padding-bottom: 0px;">
                                                     <input type="button" onClick="location.href=location.href" value="<#CTL_refresh#>" class="btn btn-primary" style="width: 219px;">
                                                 </td>

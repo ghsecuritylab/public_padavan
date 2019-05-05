@@ -34,6 +34,8 @@
 		location.href = "/nkn_logs.asp";
             else if(id == "tab_nkn_wallet")
 		location.href = "/nkn_wallet.asp";
+            else if(id == "tab_nkn_monitor")
+		location.href = "/nkn_monitor.asp";
             return false;
         }
     </script>
@@ -117,6 +119,11 @@
                                                 <li class="active">
                                                     <a href="javascript:void(0)" id="tab_nkn_neighbor">
                                                         <#NKN_Neighbor#>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="javascript:void(0)" id="tab_nkn_monitor">
+                                                        <#NKN_MONITOR#>
                                                     </a>
                                                 </li>
                                                 <li>

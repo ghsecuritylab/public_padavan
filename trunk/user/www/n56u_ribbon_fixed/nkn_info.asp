@@ -28,13 +28,26 @@
         function switchPage(id) {
             if (id == "tab_nkn_node")
                 location.href = "/nkn_node.asp";
-            else if(id == "tab_nkn_logs")
-		location.href = "/nkn_logs.asp";
-            else if(id == "tab_nkn_wallet")
-		location.href = "/nkn_wallet.asp";
-            else if(id == "tab_nkn_neighbor")
-		location.href = "/nkn_neighbor.asp";
+            else if (id == "tab_nkn_logs")
+                location.href = "/nkn_logs.asp";
+            else if (id == "tab_nkn_wallet")
+                location.href = "/nkn_wallet.asp";
+            else if (id == "tab_nkn_neighbor")
+                location.href = "/nkn_neighbor.asp";
+            else if (id == "tab_nkn_monitor")
+                location.href = "/nkn_monitor.asp";
             return false;
+        }
+
+        function resetNKN() {
+            var alert_string = "<#NKN_Reset_Hint#>";
+            if(confirm(alert_string)){
+                document.form.reset_nkn.blur();
+                showLoadingOne();
+                document.form.action_mode.value = " ResetNKN ";
+                document.form.submit();
+            }else
+		return false;
         }
     </script>
 
@@ -77,72 +90,89 @@
         <div id="Loading" class="popup_bg"></div>
 
         <iframe name="hidden_frame" id="hidden_frame" src="" width="0" height="0" frameborder="0" style="position: absolute;"></iframe>
+        <form method="post" name="form" action="apply.cgi" class="form_thin" target="hidden_frame">
+            <input type="hidden" name="current_page" value="nkn_info.asp">
+            <input type="hidden" name="next_page" value="">
+            <input type="hidden" name="next_host" value="">
+            <input type="hidden" name="sid_list" value="">
+            <input type="hidden" name="group_id" value="">
+            <input type="hidden" name="action_mode" value="">
+            <input type="hidden" name="action_script" value="">
 
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <div class="span3">
-                    <!--Sidebar content-->
-                    <!--=====Beginning of Main Menu=====-->
-                    <div class="well sidebar-nav side_nav" style="padding: 0px;">
-                        <ul id="mainMenu" class="clearfix"></ul>
-                        <ul class="clearfix">
-                            <li>
-                                <div id="subMenu" class="accordion"></div>
-                            </li>
-                        </ul>
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span3">
+                        <!--Sidebar content-->
+                        <!--=====Beginning of Main Menu=====-->
+                        <div class="well sidebar-nav side_nav" style="padding: 0px;">
+                            <ul id="mainMenu" class="clearfix"></ul>
+                            <ul class="clearfix">
+                                <li>
+                                    <div id="subMenu" class="accordion"></div>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
 
-                <div class="span9">
-                    <!--Body content-->
-                    <div class="row-fluid">
-                        <div class="span12">
-                            <div class="box well grad_colour_dark_blue">
-                                <h2 class="box_head round_top"><#menu8#> - <#NKN_Info#></h2>
-                                <div class="round_bottom">
-                                    <div class="row-fluid">
-                                        <div id="tabMenu" class="submenuBlock"></div>
-                                        <div style="margin-bottom: -16px;">
-                                            <ul id="tabs" class="nav nav-tabs">
-                                                <li>
-                                                    <a href="javascript:void(0)" id="tab_nkn_node">
-                                                        <#NKN_Node#>
-                                                    </a>
-                                                </li>
-                                                <li class="active">
-                                                    <a href="javascript:void(0)" id="tab_nkn_info">
-                                                        <#NKN_Info#>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" id="tab_nkn_neighbor">
-                                                        <#NKN_Neighbor#>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" id="tab_nkn_logs">
-                                                        <#NKN_Logs#>
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="javascript:void(0)" id="tab_nkn_wallet">
-                                                        <#NKN_Wallet#>
-                                                    </a>
-                                                </li>
-                                            </ul>
+                    <div class="span9">
+                        <!--Body content-->
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="box well grad_colour_dark_blue">
+                                    <h2 class="box_head round_top"><#menu8#> - <#NKN_Info#></h2>
+                                    <div class="round_bottom">
+                                        <div class="row-fluid">
+                                            <div id="tabMenu" class="submenuBlock"></div>
+                                            <div style="margin-bottom: -16px;">
+                                                <ul id="tabs" class="nav nav-tabs">
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_node">
+                                                            <#NKN_Node#>
+                                                        </a>
+                                                    </li>
+                                                    <li class="active">
+                                                        <a href="javascript:void(0)" id="tab_nkn_info">
+                                                            <#NKN_Info#>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_neighbor">
+                                                            <#NKN_Neighbor#>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_monitor">
+                                                            <#NKN_MONITOR#>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_logs">
+                                                            <#NKN_Logs#>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_wallet">
+                                                            <#NKN_Wallet#>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <table width="100%" cellpadding="4" cellspacing="0" class="table">
+                                                <tr>
+                                                    <td colspan="3" style="border-top: 0 none; padding-bottom: 0px;">
+                                                        <textarea rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px;" readonly="readonly" wrap="off"><% nvram_dump("nkninfo.log", ""); %></textarea>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="15%" style="text-align: left; padding-bottom: 0px;">
+                                                        <input name="reset_nkn" type="button" onClick="resetNKN();" value="<#NKN_Reset#>" class="btn btn-danger" style="width: 170px;">
+                                                    </td>
+                                                    <td style="text-align: right; padding-bottom: 0px;">
+                                                        <input type="button" onClick="location.href=location.href" value="<#CTL_refresh#>" class="btn btn-primary" style="width: 219px;">
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </div>
-                                        <table width="100%" cellpadding="4" cellspacing="0" class="table">
-                                            <tr>
-                                                <td style="border-top: 0 none; padding-bottom: 0px;">
-                                                    <textarea rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px;" readonly="readonly" wrap="off"><% nvram_dump("nkninfo.log", ""); %></textarea>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="text-align: right; padding-bottom: 0px;">
-                                                    <input type="button" onClick="location.href=location.href" value="<#CTL_refresh#>" class="btn btn-primary" style="width: 219px;">
-                                                </td>
-                                            </tr>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -150,7 +180,8 @@
                     </div>
                 </div>
             </div>
-        </div>
+
+        </form>
 
         <div id="footer"></div>
     </div>

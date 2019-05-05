@@ -8,8 +8,19 @@ else
 	NKN_USB_ROOT=$(cat /proc/mounts | grep 'dev.*.media' | head -n 1 | awk '{print $2}')
 fi
 
+export "PATH=$PATH:${NKN_USB_ROOT}/nkn"
+
 while true; do
 	sleep 86400
+
+	if [ -f "${NKN_USB_ROOT}/nkn/pre_nknd_update.sh" ]; then
+		/usr/bin/logger -t nknd "Run pre_nknd_update.sh"
+		${NKN_USB_ROOT}/nkn/pre_nknd_update.sh
+	fi
+
+	if [ -d "${NKN_USB_ROOT}/nkn/Log" ]; then
+		/usr/bin/nkn.sh cleanlogs
+	fi
 
 	NKN_MD5_LOCAL=$(cat /usr/share/nkn/nkn.md5)
 
@@ -39,8 +50,12 @@ while true; do
 
 		tar -xzvf "${NKN_USB_ROOT}/nkn/nkn.tgz" -C "${NKN_USB_ROOT}/nkn"
 
+		if [ -f "${NKN_USB_ROOT}/nkn/post_nknd_upgrade.sh" ]; then
+			/usr/bin/logger -t nknd "Run post_nknd_upgrade.sh"
+			${NKN_USB_ROOT}/nkn/post_nknd_upgrade.sh
+		fi
+
 		/usr/bin/logger -t nknd Start NKN node
-		export "PATH=$PATH:${NKN_USB_ROOT}/nkn"
 		cd "${NKN_USB_ROOT}/nkn"
 		nknd </etc/storage/nkn/wallet.pswd >/dev/null 2>&1 &
 

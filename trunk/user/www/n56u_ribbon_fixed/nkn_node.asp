@@ -47,6 +47,8 @@
 		location.href = "/nkn_wallet.asp";
             else if(id == "tab_nkn_neighbor")
 		location.href = "/nkn_neighbor.asp";
+            else if(id == "tab_nkn_monitor")
+		location.href = "/nkn_monitor.asp";
             return false;
         }
     </script>
@@ -59,7 +61,6 @@
             show_menu(4, -1, 0);
             show_footer();
 
-            read_nknWalletFromFile();
             change_nkn_enabled();
 
             showTab(getHash());
@@ -86,6 +87,13 @@
             if (!document.form.nkn_enable[0].checked)
                 return true;
 
+            if (document.form.nkn_wallet_address.value.length != 36 ||
+                    document.form.nkn_wallet_address.value.lastIndexOf("NKN") != 0) {
+                alert("<#NKN_WALLET_ADDR_ERR#>");
+                document.form.nkn_wallet_address.focus();
+                return false;
+            }
+
             if (document.form.nkn_wallet_passwd.value.length < 8) {
                 alert("<#NKN_WALLET_PASSWORD_ERR#>");
                 document.form.nkn_wallet_passwd.focus();
@@ -107,10 +115,6 @@
         function change_nkn_enabled() {
             var v = document.form.nkn_enable[0].checked;
             showhide_div('tbl_nkn_config', v);
-        }
-
-        function read_nknWalletFromFile() {
-            document.form.nkn_wallet_address.value = "<% nvram_dump("nknaddr.log", ""); %>";
         }
 
         function checkFileName(obj,ext){
@@ -174,14 +178,14 @@
 
         function openLink(s) {
             var link_params = "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480";
-            var tourl = "https://testnet.nkn.org/wallet/create";
+            var tourl = "https://nknwallet.io/wallet/create-wallet";
             link = window.open(tourl, "NKNCreateLink", link_params);
             if (!link.opener) link.opener = self;
         }
 
         function openWallet(s) {
             var link_params = "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480";
-            var tourl = "https://testnet.nkn.org/detail/address/" + document.form.nkn_wallet_address.value + "/1";
+            var tourl = "https://explorer.nknx.org/addresses/" + document.form.nkn_wallet_address.value;
             link = window.open(tourl, "NKNWalletLink", link_params);
             if (!link.opener) link.opener = self;
         }
@@ -264,6 +268,11 @@
                                                     <li>
                                                         <a href="javascript:void(0)" id="tab_nkn_neighbor">
                                                             <#NKN_Neighbor#>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="javascript:void(0)" id="tab_nkn_monitor">
+                                                            <#NKN_MONITOR#>
                                                         </a>
                                                     </li>
                                                     <li>

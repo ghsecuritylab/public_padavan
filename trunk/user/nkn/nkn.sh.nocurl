@@ -12,7 +12,9 @@ fi
 func_info()
 {
 	if [ -n "`pidof nknd`" ]; then
-		NKN_STATE_LOCAL=$(nknc-info.sh state)
+		killall -q nknc
+		cd ${NKN_USB_ROOT}/nkn
+		NKN_STATE_LOCAL=$(./nknc info -s)
 		if [ ! -z "$NKN_STATE_LOCAL" ]; then
 			NKN_LATEST_LOG=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
 			if [ ! -z "$NKN_LATEST_LOG" ]; then
@@ -31,7 +33,10 @@ func_info()
 func_neighbor()
 {
 	if [ -n "`pidof nknd`" ]; then
-		nknc-info.sh neighbor
+		killall -q nknc
+		cd ${NKN_USB_ROOT}/nkn
+		echo -e "RemoteAddress\t\tHeight\t\tRTT\tSyncState"
+		./nknc info --neighbor | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
 	else
 		echo "NKN node is not running."
 	fi
@@ -40,12 +45,18 @@ func_neighbor()
 func_wallet()
 {
 	if [ -f /etc/storage/nkn/wallet.dat ]; then
-		NKN_WADDR_CUR=$(grep -o 'Address":".*ProgramHash' /etc/storage/nkn/wallet.dat | cut -d \" -f 3 | xargs echo -n)
-		if [ "${NKN_WADDR_CUR:0:3}" != "NKN" ]; then
-			NKN_WADDR_CUR="Invalid_Wallet_File"
+		NKN_WADDR_CUR=$(jq -r '.Address' /etc/storage/nkn/wallet.dat | xargs echo -n)
+		if [ "${NKN_WADDR_CUR:0:3}" != "NKN" ] && [ -f "${NKN_USB_ROOT}/nkn/nknc" ] && [ ! -z "$NKN_PASSWD" ]; then
+			killall -q nknc
+			cd ${NKN_USB_ROOT}/nkn
+			NKN_WADDR_CUR=$(./nknc wallet -l account -n /etc/storage/nkn/wallet.dat -p "$NKN_PASSWD" | tail -1 | awk '{print $1}' | xargs echo -n)
+			if [ "${NKN_WADDR_CUR:0:3}" == "NKN" ] && [ "$NKN_WADDR_CUR" != "$NKN_WADDR" ]; then
+				nvram set nkn_wallet_address=$NKN_WADDR_CUR
+				nvram commit
+			elif [ "${NKN_WADDR_CUR:0:1}" != "N" ]; then
+				NKN_WADDR_CUR="Incorrect wallet or password"
+			fi
 		fi
-		nvram set nkn_wallet_address=$NKN_WADDR_CUR
-		nvram commit
 		echo -n "$NKN_WADDR_CUR"
 	fi
 }
@@ -53,10 +64,12 @@ func_wallet()
 func_balance()
 {
 	if [ -n "`pidof nknd`" ]; then
+		killall -q nknc
+		cd ${NKN_USB_ROOT}/nkn
 		if [ -z "$1" ]; then
-			nknc-info.sh balance "$NKN_WADDR"
+			./nknc info --balance "$NKN_WADDR" | jq -r '.result.amount' | xargs echo -n
 		else
-			nknc-info.sh balance "$1"
+			./nknc info --balance "$1" | jq -r '.result.amount' | xargs echo -n
 		fi
 	else
 		echo -n "n/a"
@@ -68,7 +81,7 @@ func_transfer()
 	if [ -n "`pidof nknd`" ]; then
 		killall -q nknc
 		cd ${NKN_USB_ROOT}/nkn
-		NKN_NONCE=$(nknc-info.sh nonce $NKN_WADDR)
+		NKN_NONCE=$(./nknc info --nonce $NKN_WADDR | grep nonce | awk '{print $2}')
 		if [ "$NKN_NONCE" != "$(nvram get nkn_nonce)" ]; then
 			NKN_TRANS_RESULT=$(./nknc asset --transfer --password "$1" --to "$2" --value "$3" --fee "$4" --nonce "$NKN_NONCE")
 			echo "$NKN_TRANS_RESULT" | grep result >/dev/null
@@ -91,15 +104,6 @@ func_logs()
 		tail -100 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
 	fi
 }
-
-func_logs_pre()
-{
-	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | awk 'NR==2 {print $9}')
-	if [ ! -z "${NKN_LOG_FILE}" ]; then
-		tail -100 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
-	fi
-}
-
 
 func_checkupdate()
 {
@@ -143,11 +147,6 @@ func_checkupdate()
 			/usr/bin/logger -t nknd New version of NKN node has been downloaded
 		done
 		tar -xzvf "${NKN_USB_ROOT}/nkn/nkn.tgz" -C "${NKN_USB_ROOT}/nkn"
-
-		if [ -f "${NKN_USB_ROOT}/nkn/post_nknd_upgrade.sh" ]; then
-			/usr/bin/logger -t nknd "Run post_nknd_upgrade.sh"
-			${NKN_USB_ROOT}/nkn/post_nknd_upgrade.sh
-		fi
 	fi
 }
 
@@ -176,26 +175,11 @@ func_resetChainOnError()
 	fi
 }
 
-func_reset()
-{
-	NKN_ENABLED=$(nvram get nkn_enable)
-	if [ "$NKN_ENABLED" = "1" ]; then
-		nvram set nkn_starting=1
-		func_stop
-	fi
-
-	func_resetChain
-
-	if [ "$NKN_ENABLED" = "1" ]; then
-		func_start
-	fi
-}
-
 func_resetChain()
 {
 	rm -rf "${NKN_USB_ROOT}/nkn/Chain"
 	rm -rf "${NKN_USB_ROOT}/nkn/ChainDB"
-	/usr/bin/logger -t nknd "ChainDB directory has been reset."
+	echo "ChainDB directory has been reset."
 }
 
 func_mount()
@@ -288,7 +272,7 @@ func_start()
 	MemTotal=$(cat /proc/meminfo | grep MemTotal | awk '{print $2}')
 	SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
 
-	if [ "$MemTotal" -lt "200000" ]; then
+	if [ "$MemTotal" -lt "400000" ]; then
 		if [ "$SwapTotal" -lt "200000" ]; then
 			nvram set nkn_enable=0
 			nvram commit
@@ -306,7 +290,6 @@ func_start()
 	if [ -z "$1" ]; then
 		func_checkupdate
 		/usr/bin/nkn-updater.sh >/dev/null 2>&1 &
-
 		nvram set nkn_restart_cnt=0
 
 		NKN_BENEFICIARY_ADDR=$(nvram get nkn_beneficiary_address)
@@ -331,11 +314,6 @@ func_start()
 	echo $NKN_PASSWD > /etc/storage/nkn/wallet.pswd
 	nknd </etc/storage/nkn/wallet.pswd >/dev/null 2>&1 &
 
-	if [ -f "${NKN_USB_ROOT}/nkn/post_nknd_start.sh" ]; then
-		/usr/bin/logger -t nknd "Run post_nknd_start.sh"
-		${NKN_USB_ROOT}/nkn/post_nknd_start.sh
-	fi
-
 	nvram set nkn_starting=0
 }
 
@@ -345,12 +323,6 @@ func_stop()
 		/usr/bin/logger -t nknd Stop NKN updater
 		kill -9 "`pidof nkn-updater.sh`"
 	fi
-
-	if [ -f "${NKN_USB_ROOT}/nkn/pre_nknd_stop.sh" ]; then
-		/usr/bin/logger -t nknd "Run pre_nknd_stop.sh"
-		${NKN_USB_ROOT}/nkn/pre_nknd_stop.sh
-	fi
-
 	/usr/bin/logger -t nknd Stop NKN node
 	killall -q nknd
 }
@@ -382,17 +354,11 @@ balance)
 transfer)
 	func_transfer "$2" "$3" "$4" "$5"
 	;;
-cleanlogs)
-	func_cleanlogs
-	;;
 reset)
-	func_reset
+	func_resetChain
 	;;
 logs)
 	func_logs
-	;;
-logs_pre)
-	func_logs_pre
 	;;
 updatefw)
 	func_updatefw
@@ -404,7 +370,7 @@ umount)
 	func_umount
 	;;
 *)
-	echo "Usage: $0 {start|stop|info|neighbor|wallet|balance|transfer|cleanlogs|reset|logs}"
+	echo "Usage: $0 {start|stop|info|neighbor|wallet|balance|transfer|reset|logs}"
 	exit 1
 	;;
 esac
