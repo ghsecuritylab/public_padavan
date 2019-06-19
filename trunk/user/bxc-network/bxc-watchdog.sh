@@ -16,7 +16,7 @@ while true; do
 				kill -9 "`pidof bxc-network`"
 				sleep 3
 			done
-			/usr/sbin/bxc-network >/dev/null 2>&1 &
+			nice --10 /usr/sbin/bxc-network >/dev/null 2>&1 &
 		else
 			logger -t bxc-watchdog "Network problem"
 		fi
@@ -24,18 +24,25 @@ while true; do
 
 	curl -I -m 3 -x http://127.0.0.1:8901 http://www.baidu.com
 	if [ "$?" != "0" ]; then
-		cnt2=$((cnt2+1))
-		/usr/bin/logger -t bxc-watchdog "Network task malfunction($cnt2)!"
 		wget -s -q -T 3 www.baidu.com
 		if [ "$?" == "0" ]; then
-			logger -t bxc-watchdog "Restart bxc-worker"
-			while [ -n "`pidof bxc-worker`" ] ; do
-				killall -q bxc-worker
+			/usr/bin/logger -t bxc-watchdog "Network task malfunction!"
+			while true; do
+				cnt2=$((cnt2+1))
+				while [ -n "`pidof bxc-worker`" ] ; do
+					killall bxc-worker
+					sleep 1
+				done
+				nice --10 /usr/sbin/bxc-worker >/dev/null 2>&1 &
 				sleep 3
+				curl -I -m 3 -x http://127.0.0.1:8901 http://www.baidu.com
+				if [ "$?" == "0" ]; then
+					logger -t bxc-watchdog "Restart bxc-worker($cnt2)"
+					break
+				fi
 			done
-			/usr/sbin/bxc-worker >/dev/null 2>&1 &
 		else
-			logger -t bxc-watchdog "Network problem"
+			logger -t bxc-watchdog "Network problem!"
 		fi
 	fi
 

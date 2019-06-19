@@ -3550,6 +3550,16 @@ do_syslog_file(const char *url, FILE *stream)
 	fputs("\r\n", stream); /* terminator */
 }
 
+#if defined(APP_NKN)
+static void
+do_nknlog_file(const char *url, FILE *stream)
+{
+	doSystem("/usr/bin/nkn.sh logs_dump");
+	dump_file(stream, "/tmp/nknlog.txt");
+	fputs("\r\n", stream); /* terminator */
+}
+#endif
+
 #if defined(APP_OPENVPN)
 static void
 do_export_ovpn_client(const char *url, FILE *stream)
@@ -3566,6 +3576,12 @@ static char syslog_txt[] =
 "Content-Disposition: attachment;\r\n"
 "filename=syslog.txt"
 ;
+
+static char nknlog_txt[] =
+"Content-Disposition: attachment;\r\n"
+"filename=nknlog.txt"
+;
+
 
 static char no_cache_IE[] =
 "X-UA-Compatible: IE=edge\r\n"
@@ -3628,6 +3644,7 @@ struct mime_handler mime_handlers[] = {
 #if defined(APP_NKN)
 	{ "upload_nknwallet.cgi*", "text/html", no_cache_IE, do_upload_nknwallet_post, do_upload_nknwallet_cgi, 1 },
 	{ "refresh_balance.cgi*", "text/html", no_cache_IE, NULL, do_refresh_balance_cgi, 1 },
+	{ "nknlog.txt", "application/force-download", nknlog_txt, NULL, do_nknlog_file, 1 },
 #endif
 	{ NULL, NULL, NULL, NULL, NULL, 0 }
 };

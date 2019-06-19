@@ -1,8 +1,8 @@
 ##################################################################
 # Board PID # Board Name       # PRODUCT # Note
 ##################################################################
-# YK-L1     # YOUKU YK-L1      # MT7620  #
+# NEWIFI3   # NEWIFI3          # MT7621  #
 ##################################################################
 
-CFLAGS += -DBOARD_N14U -DVENDOR_ASUS
+CFLAGS += -DBOARD_NEWIFI3
 BOARD_NUM_USB_PORTS=1

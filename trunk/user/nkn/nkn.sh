@@ -5,8 +5,10 @@ NKN_WADDR=$(nvram get nkn_wallet_address)
 
 if [ -e /dev/mmcblk0 ]; then
 	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
+elif [ -e /dev/sda ]; then
+	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiDisk_NKN' | head -n 1 | awk '{print $2}')
 else
-	NKN_USB_ROOT=$(cat /proc/mounts | grep 'dev.*.media' | head -n 1 | awk '{print $2}')
+	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCifs_NKN' | head -n 1 | awk '{print $2}')
 fi
 
 func_info()
@@ -88,7 +90,7 @@ func_logs()
 {
 	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
 	if [ ! -z "${NKN_LOG_FILE}" ]; then
-		tail -100 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
+		tail -500 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
 	fi
 }
 
@@ -96,7 +98,18 @@ func_logs_pre()
 {
 	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | awk 'NR==2 {print $9}')
 	if [ ! -z "${NKN_LOG_FILE}" ]; then
-		tail -100 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
+		tail -500 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
+	fi
+}
+
+func_logs_dump()
+{
+	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+	rm -rf /tmp/nknlog.txt
+	if [ ! -z "${NKN_LOG_FILE}" ]; then
+		ln -s "${NKN_LOG_FILE}" /tmp/nknlog.txt
+	else
+		touch /tmp/nknlog.txt
 	fi
 }
 
@@ -202,13 +215,13 @@ func_mount()
 {
 	modprobe des_generic
 	modprobe cifs CIFSMaxBufSize=64512
-	mkdir -p /media/dev/media/cifs
-	mount -t cifs "$1" /media/dev/media/cifs -o username="$2",password="$3"
+	mkdir -p /media/AiCifs_NKN
+	mount -t cifs "$1" /media/AiCifs_NKN -o username="$2",password="$3"
 }
 
 func_umount()
 {
-	umount /media/dev/media/cifs
+	umount /media/AiCifs_NKN
 }
 
 func_initMMC()
@@ -241,13 +254,88 @@ p
 w
 EOF
 
+mdev -s
 ejmmc
-mkswap /dev/mmcblk0p1
 
-ejmmc
+mkswap /dev/mmcblk0p1
 mkfs.ext4 -m 0 -L AiCard_NKN /dev/mmcblk0p2
 
 mdev -s
+}
+
+func_initUSB()
+{
+ejusb
+
+fdisk -u /dev/sda <<EOF
+d
+1
+d
+2
+d
+3
+d
+4
+n
+p
+1
+
++256M
+n
+p
+2
+
+
+t
+1
+82
+p
+w
+EOF
+
+mdev -s
+ejusb
+
+mkswap /dev/sda1
+mkfs.ext4 -m 0 -L AiDisk_NKN /dev/sda2
+
+mdev -s
+}
+
+func_format()
+{
+	NKN_ENABLED=$(nvram get nkn_enable)
+	if [ "$NKN_ENABLED" = "1" ]; then
+		nvram set nkn_starting=1
+		func_stop
+	fi
+
+	func_format_nostart
+
+	if [ "$NKN_ENABLED" = "1" ]; then
+		func_start
+	fi
+}
+
+func_format_nostart()
+{
+	NKN_USB_ROOT=""
+	if [ -e /dev/mmcblk0 ]; then
+		SwapTotal="0"
+		while [ -z "$NKN_USB_ROOT" ] || [ "$SwapTotal" -lt "200000" ]; do
+			/usr/bin/logger -t nknd Initializing MMC device...
+			func_initMMC
+			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
+			SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
+		done
+	elif [ -e /dev/sda ]; then
+		while [ -z "$NKN_USB_ROOT" ] || [ "$SwapTotal" -lt "200000" ]; do
+			/usr/bin/logger -t nknd Initializing USB storage device...
+			func_initUSB
+			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiDisk_NKN' | head -n 1 | awk '{print $2}')
+			SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
+		done
+	fi
 }
 
 func_start()
@@ -261,21 +349,19 @@ func_start()
 		exit 1
 	fi
 
-
-	if [ -e /dev/mmcblk0 ]; then
-		SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
-		if [ -z "$NKN_USB_ROOT" ]; then
-			mdev -s
+	if [ -z "${NKN_USB_ROOT}" ]; then
+		mdev -s
+		if [ -e /dev/mmcblk0 ]; then
 			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
-			SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
+		elif [ -e /dev/sda ]; then
+			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiDisk_NKN' | head -n 1 | awk '{print $2}')
+		else
+			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCifs_NKN' | head -n 1 | awk '{print $2}')
 		fi
+	fi
 
-		while [ -z "$NKN_USB_ROOT" ] || [ "$SwapTotal" -lt "200000" ]; do
-			/usr/bin/logger -t nknd Initializing MMC device...
-			func_initMMC
-			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
-			SwapTotal=$(cat /proc/meminfo | grep SwapTotal| awk '{print $2}')
-		done
+	if [ -z "${NKN_USB_ROOT}" ]; then
+		func_format_nostart
 	fi
 
 	if [ -z "${NKN_USB_ROOT}" ]; then
@@ -314,6 +400,8 @@ func_start()
 			/usr/bin/logger -t nknd "Beneficiary Address: ${NKN_BENEFICIARY_ADDR}"
 			sed -i -e '2i\  "BeneficiaryAddr": "'${NKN_BENEFICIARY_ADDR}'",' "${NKN_USB_ROOT}/nkn/config.json"
 		fi
+
+		nvram set nkn_nonce=x
 	else
 		NKN_RESTART_CNT=$(nvram get nkn_restart_cnt)
 		/usr/bin/logger -t nknd "Restart by watchdog($NKN_RESTART_CNT)"
@@ -388,11 +476,17 @@ cleanlogs)
 reset)
 	func_reset
 	;;
+format)
+	func_format
+	;;
 logs)
 	func_logs
 	;;
 logs_pre)
 	func_logs_pre
+	;;
+logs_dump)
+	func_logs_dump
 	;;
 updatefw)
 	func_updatefw

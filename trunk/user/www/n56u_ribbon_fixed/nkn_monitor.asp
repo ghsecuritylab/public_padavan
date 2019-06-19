@@ -457,10 +457,10 @@
 
                                         <table width="100%" align="center" cellpadding="4" cellspacing="0" class="table table-stat">
                                             <tr>
-                                                <th width="12%" style="text-align: center">
+                                                <th width="9%" style="text-align: center">
                                                     <#Color#>
                                                 </th>
-                                                <th width="13%">
+                                                <th width="16%">
                                                     <#NAME#>
                                                 </th>
                                                 <th width="25%" style="text-align: right">
@@ -474,10 +474,10 @@
                                                 </th>
                                             </tr>
                                             <tr>
-                                                <td width="12%" style="text-align:center; vertical-align: middle;">
+                                                <td width="9%" style="text-align:center; vertical-align: middle;">
                                                     <div id="cpu-sel" class="span12" style="border-radius: 5px;"></div>
                                                 </td>
-                                                <td width="13%">
+                                                <td width="16%">
                                                     <#NKN_CPU#>
                                                 </td>
                                                 <td width="25%" align="center" valign="top" style="text-align:right;font-weight: bold;"><span id="cpu-current"></span></td>
@@ -485,10 +485,10 @@
                                                 <td width="25%" align="center" valign="top" style="text-align:right" id="cpu-max"></td>
                                             </tr>
                                             <tr>
-                                                <td width="12%" style="text-align:center; vertical-align: middle;">
+                                                <td width="9%" style="text-align:center; vertical-align: middle;">
                                                     <div id="mem-sel" class="span12" style="border-radius: 5px;"></div>
                                                 </td>
-                                                <td width="13%">
+                                                <td width="16%">
                                                     <#NKN_MEMORY#>
                                                 </td>
                                                 <td width="25%" align="center" valign="top" style="text-align:right;font-weight: bold;"><span id="mem-current"></span></td>
@@ -496,10 +496,10 @@
                                                 <td width="25%" align="center" valign="top" style="text-align:right" id="mem-max"></td>
                                             </tr>
                                             <tr>
-                                                <td width="12%" style="text-align:center; vertical-align: middle;">
+                                                <td width="9%" style="text-align:center; vertical-align: middle;">
                                                     <div id="con-sel" class="span12" style="border-radius: 5px;"></div>
                                                 </td>
-                                                <td width="13%">
+                                                <td width="16%">
                                                     <#NKN_CON#>
                                                 </td>
                                                 <td width="25%" align="center" valign="top" style="text-align:right;font-weight: bold;"><span id="con-current"></span></td>

@@ -28,9 +28,9 @@ func_memory()
 func_state()
 {
 	if [ -z "$1" ]; then
-		curl -m 3 -s -d '{"id":0,"method":"getnodestate","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | jq -M --tab
+		curl -s -d '{"id":0,"method":"getnodestate","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | jq -M --tab
 	else
-		curl -m 3 -s -d '{"id":0,"method":"getnodestate","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | jq -M --tab
+		curl -s -d '{"id":0,"method":"getnodestate","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | jq -M --tab
 	fi
 }
 
@@ -38,10 +38,10 @@ func_neighbor()
 {
 	echo -e "RemoteAddress\t\tHeight\t\tRTT\tSyncState"
 	if [ -z "$1" ]; then
-		curl -m 3 -s -d '{"id":0,"method":"getneighbor","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
+		curl -s -d '{"id":0,"method":"getneighbor","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
 
 	else
-		curl -m 3 -s -d '{"id":0,"method":"getneighbor","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
+		curl -s -d '{"id":0,"method":"getneighbor","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | jq -r '.result[] | "\(.addr)\t\t\(.height)\t\t\(.roundTripTime)\t\(.syncState)"' | sed 's/tcp:\/\///g;s/:30001//g'
 	fi
 }
 
@@ -49,9 +49,9 @@ func_connections()
 {
 	if [ -n "`pidof nknd`" ]; then
 		if [ -z "$1" ]; then
-			connections=$(curl -m 3 -s -d '{"id":0,"method":"getconnectioncount","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -nr '/\bresult\b/ {s/.*:([0-9]+).*/\1/p}')
+			connections=$(curl -s -d '{"id":0,"method":"getconnectioncount","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -e 's/^.*"result"[:" ]*\([0-9.]*\).*$/\1/')
 		else
-			connections=$(curl -m 3 -s -d '{"id":0,"method":"getconnectioncount","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | sed -nr '/\bresult\b/ {s/.*:([0-9]+).*/\1/p}')
+			connections=$(curl -s -d '{"id":0,"method":"getconnectioncount","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | sed -e 's/^.*"result"[:" ]*\([0-9.]*\).*$/\1/')
 		fi
 		echo $connections
 		exit $connections
@@ -64,20 +64,25 @@ func_connections()
 func_blockcount()
 {
 	if [ -z "$1" ]; then
-		curl -m 3 -s -d '{"id":0,"method":"getblockcount","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -nr '/\bresult\b/ {s/.*:([0-9]+).*/\1/p}'
+		curl -s -d '{"id":0,"method":"getblockcount","params":{}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -e 's/^.*"result"[:" ]*\([0-9.]*\).*$/\1/'
 	else
-		curl -m 3 -s -d '{"id":0,"method":"getblockcount","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | sed -nr '/\bresult\b/ {s/.*:([0-9]+).*/\1/p}'
+		curl -s -d '{"id":0,"method":"getblockcount","params":{}}' -H "Content-Type: application/json" -X POST http://"$1":30003 | sed -e 's/^.*"result"[:" ]*\([0-9.]*\).*$/\1/'
 	fi
 }
 
 func_balance()
 {
-	curl -m 3 -s -d '{"id":0,"method":"getbalancebyaddr","params":{"address": "'$1'"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -nr '/\bamount\b/ {s/.*"([0-9.]+).*/\1/p}'
+	curl -s -d '{"id":0,"method":"getbalancebyaddr","params":{"address": "'$1'"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -e 's/^.*"amount"[:" ]*\([0-9.]*\).*$/\1/'
 }
 
 func_nonce()
 {
-	curl -m 3 -s -d '{"id":0,"method":"getnoncebyaddr","params":{"address": "'$1'"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -nr '/\bnonce\b/ {s/.*:([0-9]+).*/\1/p}'
+	curl -s -d '{"id":0,"method":"getnoncebyaddr","params":{"address": "'$1'"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -e 's/^.*"nonce"[:" ]*\([0-9.]*\).*$/\1/'
+}
+
+func_nonceInTxPool()
+{
+	curl -s -d '{"id":0,"method":"getnoncebyaddr","params":{"address": "'$1'"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:30003 | sed -e 's/^.*"nonceInTxPool"[:" ]*\([0-9.]*\).*$/\1/'
 }
 
 case "$1" in
@@ -105,8 +110,11 @@ balance)
 nonce)
 	func_nonce "$2"
 	;;
+nonceInTxPool)
+	func_nonceInTxPool "$2"
+	;;
 *)
-	echo "Usage: $0 {cpu|memory|state|neighbor|connections|blockcount|balance|nonce}"
+	echo "Usage: $0 {cpu|memory|state|neighbor|connections|blockcount|balance|nonce|nonceInTxPool}"
 	exit 1
 	;;
 esac

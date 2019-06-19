@@ -4,8 +4,10 @@
 
 if [ -e /dev/mmcblk0 ]; then
 	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
+elif [ -e /dev/sda ]; then
+	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiDisk_NKN' | head -n 1 | awk '{print $2}')
 else
-	NKN_USB_ROOT=$(cat /proc/mounts | grep 'dev.*.media' | head -n 1 | awk '{print $2}')
+	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCifs_NKN' | head -n 1 | awk '{print $2}')
 fi
 
 export "PATH=$PATH:${NKN_USB_ROOT}/nkn"
@@ -56,6 +58,15 @@ while true; do
 		fi
 
 		/usr/bin/logger -t nknd Start NKN node
+
+		nvram set nkn_restart_cnt=0
+
+		NKN_BENEFICIARY_ADDR=$(nvram get nkn_beneficiary_address)
+		if [ "$NKN_BENEFICIARY_ADDR" != "" ]; then
+			/usr/bin/logger -t nknd "Beneficiary Address: ${NKN_BENEFICIARY_ADDR}"
+			sed -i -e '2i\  "BeneficiaryAddr": "'${NKN_BENEFICIARY_ADDR}'",' "${NKN_USB_ROOT}/nkn/config.json"
+		fi
+
 		cd "${NKN_USB_ROOT}/nkn"
 		nknd </etc/storage/nkn/wallet.pswd >/dev/null 2>&1 &
 

@@ -156,20 +156,24 @@
                                         </div>
                                         <table width="100%" cellpadding="4" cellspacing="0" class="table">
                                             <tr>
-                                                <td colspan="3" style="border-top: 0 none; padding-bottom: 0px;">
+                                                <td colspan="4" style="border-top: 0 none; padding-bottom: 0px;">
                                                     <textarea id="ta_nkn_logs" rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px;" readonly="readonly" wrap="off"><% nvram_dump("nknlogs.log", ""); %></textarea>
                                                     <textarea id="ta_nkn_logp" rows="23" class="span12" style="height:403px; font-family:'Courier New', Courier, mono; font-size:13px; display: none;" readonly="readonly" wrap="off"><% nvram_dump("nknlogp.log", ""); %></textarea>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="15%" style="text-align: left; padding-bottom: 0px;">
-                                                    <input name="btn_logp" id="btn_logp" type="button" onClick="showLogp();" value="<#NKN_Show_Logp#>" class="btn btn-info" style="width: 170px">
+                                                    <input name="btn_logp" id="btn_logp" type="button" onClick="showLogp();" value="<#NKN_Show_Logp#>" class="btn btn-info" style="width: 120px">
                                                 </td>
                                                 <td width="15%" style="text-align: left; padding-bottom: 0px;">
-                                                    <input name="btn_logs" id="btn_logs" type="button" onClick="showLogs();" value="<#NKN_Show_Logs#>" class="btn btn-info" style="width: 170px">
+                                                    <input name="btn_logs" id="btn_logs" type="button" onClick="showLogs();" value="<#NKN_Show_Logs#>" class="btn btn-info" style="width: 120px">
                                                 </td>
+                                                <td width="15%" style="text-align: left; padding-bottom: 0px;">
+                                                    <input type="button" onClick="location.href='nknlog.txt'" value="<#NKN_CTL_Logs#>" class="btn btn-success" style="width: 120px">
+                                                </td>
+
                                                 <td style="text-align: right; padding-bottom: 0px;">
-                                                    <input type="button" onClick="location.href=location.href" value="<#CTL_refresh#>" class="btn btn-primary" style="width: 219px;">
+                                                    <input type="button" onClick="location.href=location.href" value="<#CTL_refresh#>" class="btn btn-primary" style="width: 160px;">
                                                 </td>
                                             </tr>
                                         </table>

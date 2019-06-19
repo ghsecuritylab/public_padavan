@@ -97,10 +97,10 @@ func_start()
 	fi
 
 	/usr/bin/logger -t bxc-network Start bxc-network
-	/usr/sbin/bxc-network >/dev/null 2>&1 &
+	nice --10 /usr/sbin/bxc-network >/dev/null 2>&1 &
 
 	/usr/bin/logger -t bxc-worker Start bxc-worker
-	/usr/sbin/bxc-worker >/dev/null 2>&1 &
+	nice --10 /usr/sbin/bxc-worker >/dev/null 2>&1 &
 
 	/usr/bin/logger -t bxc-watchdog Start bxc-watchdog
 	/usr/bin/bxc-watchdog.sh >/dev/null 2>&1 &

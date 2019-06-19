@@ -253,36 +253,6 @@ stop_bxc(void)
 void
 start_bxc(void)
 {
-	if (system("/bin/echo \"e0c3836c8956f158f1594fb580ce979b  /www/bonuscloud.asp\" | /usr/bin/md5sum -c -s") != 0)
-	{
-		logmessage("bxc-node", "Failed to start bxc-node(1)");
-		return 1;
-	}
-
-	if (system("/bin/echo \"3e233a3f0bb971ee7464cb14358e37b6  /usr/bin/bxc.sh\" | /usr/bin/md5sum -c -s") != 0)
-	{
-		logmessage("bxc-node", "Failed to start bxc-node(2)");
-		return 1;
-	}
-
-	if (system("/bin/echo \"6fcefd8f6f015c7829bc880c61bfca51  /www/state.js\" | /usr/bin/md5sum -c -s") != 0)
-	{
-		logmessage("bxc-node", "Failed to start bxc-node(3)");
-		return 1;
-	}
-
-	if (system("/bin/echo \"914c6e6f58a36cdbef273e169e04124b  /usr/bin/bxc-watchdog.sh\" | /usr/bin/md5sum -c -s") != 0)
-	{
-		logmessage("bxc-node", "Failed to start bxc-node(4)");
-		return 1;
-	}
-
-	if (system("/bin/echo \"4c23ba69d8c8fc5061eeaf7196d58a50  /usr/share/tinyproxy/tinyproxy.conf\" | /usr/bin/md5sum -c -s") != 0)
-	{
-		logmessage("bxc-node", "Failed to start bxc-node(5)");
-		return 1;
-	}
-
 	int bxc_mode = nvram_get_int("bxc_enable");
 
 	if (bxc_mode == 1)
