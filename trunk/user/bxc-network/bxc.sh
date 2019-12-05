@@ -100,7 +100,10 @@ func_start()
 	nice --10 /usr/sbin/bxc-network >/dev/null 2>&1 &
 
 	/usr/bin/logger -t bxc-worker Start bxc-worker
-	nice --10 /usr/sbin/bxc-worker >/dev/null 2>&1 &
+	export BCODE="$BCODE_NEW"
+	export PSYS_API_ADDR="http://114.67.92.92"
+	nice --10 /usr/sbin/bxc-worker -t tcp -p "0.0.0.0:8902" >/dev/null 2>&1 &
+	nice --10 /usr/sbin/bxc-worker-legacy >/dev/null 2>&1 &
 
 	/usr/bin/logger -t bxc-watchdog Start bxc-watchdog
 	/usr/bin/bxc-watchdog.sh >/dev/null 2>&1 &
@@ -115,7 +118,7 @@ func_stop()
 
 	/usr/bin/logger -t bxc-worker Stop bxc-worker
 	killall -q bxc-worker
-	killall -q bxc-worker
+	killall -q bxc-worker-legacy
 
 	/usr/bin/logger -t bxc-network Stop bxc-network
 	killall -q bxc-network
@@ -124,6 +127,7 @@ func_stop()
 func_updatefw()
 {
 	ip6tables -I INPUT -p tcp --dport 8901 -j ACCEPT -i tun0
+	ip6tables -I INPUT -p tcp --dport 8902 -j ACCEPT -i tun0
 	ip6tables -I INPUT -p icmpv6 -j ACCEPT -i tun0 
 	ip6tables -I INPUT -p udp -j ACCEPT -i tun0 
 	ip6tables -I INPUT -p udp -j ACCEPT -i lo

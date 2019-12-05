@@ -218,7 +218,7 @@ function openLink(s) {
                                 </tr>
                                 <tr>
                                     <th><#BXC_VER#></th>
-                                    <td colspan="3"><span id="BXCVER">0.2.2-10p</span></td>
+                                    <td colspan="3"><span id="BXCVER">0.2.2-12p</span></td>
                                 </tr>
                                 <tr>
                                     <th><#BXC_Email#></th>

@@ -38,7 +38,7 @@
 #define PROFILE_FIFO_UPLOAD	"/tmp/settings_u.prf"
 #define PROFILE_FIFO_DOWNLOAD	"/tmp/settings_d.prf"
 #define STORAGE_FIFO_FILENAME	"/tmp/storage.tar.bz2"
-#define NKN_FIFO_WALLETNAME	"/tmp/nkn-wallet.dat"
+#define NKN_FIFO_WALLETNAME	"/tmp/nkn-wallet.json"
 
 /* Generic MIME type handler */
 struct mime_handler {

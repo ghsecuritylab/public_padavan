@@ -29,15 +29,15 @@ while true; do
 			/usr/bin/logger -t bxc-watchdog "Network task malfunction!"
 			while true; do
 				cnt2=$((cnt2+1))
-				while [ -n "`pidof bxc-worker`" ] ; do
-					killall bxc-worker
+				while [ -n "`pidof bxc-worker-legacy`" ] ; do
+					killall bxc-worker-legacy
 					sleep 1
 				done
-				nice --10 /usr/sbin/bxc-worker >/dev/null 2>&1 &
+				nice --10 /usr/sbin/bxc-worker-legacy >/dev/null 2>&1 &
 				sleep 3
 				curl -I -m 3 -x http://127.0.0.1:8901 http://www.baidu.com
 				if [ "$?" == "0" ]; then
-					logger -t bxc-watchdog "Restart bxc-worker($cnt2)"
+					logger -t bxc-watchdog "Restart bxc-worker-legacy($cnt2)"
 					break
 				fi
 			done

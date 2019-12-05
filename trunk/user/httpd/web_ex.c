@@ -3456,7 +3456,7 @@ do_upload_nknwallet_cgi(const char *url, FILE *stream)
 {
 	if (f_exists(NKN_FIFO_WALLETNAME)) {
 		doSystem("mkdir -p %s", STORAGE_NKN_DIR);
-		doSystem("cp -f %s %s%s", NKN_FIFO_WALLETNAME, STORAGE_NKN_DIR, "/wallet.dat");
+		doSystem("cp -f %s %s%s", NKN_FIFO_WALLETNAME, STORAGE_NKN_DIR, "/wallet.json");
 		eval("/sbin/mtd_storage.sh", "save");
 		unlink(NKN_FIFO_WALLETNAME);
 

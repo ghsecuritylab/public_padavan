@@ -18,7 +18,7 @@ rm -rf /tmp/firmware
 mkdir /tmp/firmware
 
 PRODUCT_ID=$(nvram get productid)
-curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 3 --silent -L -o /tmp/firmware/info https://github.com/bettermanbao/nkn/releases/download/latest/${PRODUCT_ID}.info
+curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 3 --silent -L -o /tmp/firmware/info https://nkn.4h8h.top/padavan/${PRODUCT_ID}.info
 
 FIRMWARE_MD5_REMOTE=$(sed -n '1p' /tmp/firmware/info)
 if [ "$(echo ${FIRMWARE_MD5_REMOTE} | wc -m)" != "33" ]; then
@@ -33,7 +33,7 @@ if [ "$FIRMWARE_VER_LOCAL" = "$FIRMWARE_VER_REMOTE" ]; then
 fi
 
 /usr/bin/logger -t firmware "New firmware(${FIRMWARE_VER_REMOTE}) has been found, downloading..."
-curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 10 --silent -L --output ${NKN_USB_ROOT}/nkn/${PRODUCT_ID}_${FIRMWARE_VER_REMOTE}.trx https://github.com/bettermanbao/nkn/releases/download/latest/${PRODUCT_ID}_${FIRMWARE_VER_REMOTE}.trx
+curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 10 --silent -L --output ${NKN_USB_ROOT}/nkn/${PRODUCT_ID}_${FIRMWARE_VER_REMOTE}.trx https://nkn.4h8h.top/padavan/${PRODUCT_ID}_${FIRMWARE_VER_REMOTE}.trx
 FIRMWARE_MD5_DOWNLOAD=$(md5sum ${NKN_USB_ROOT}/nkn/${PRODUCT_ID}_${FIRMWARE_VER_REMOTE}.trx | awk '{print $1}')
 
 if [ "${FIRMWARE_MD5_DOWNLOAD}" != "${FIRMWARE_MD5_REMOTE}" ]; then

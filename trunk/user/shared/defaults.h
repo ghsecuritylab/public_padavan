@@ -45,8 +45,8 @@
 #define DEF_ROOT_PASSWORD	"admin"
 #define DEF_SMB_WORKGROUP	"WORKGROUP"
 #define DEF_TIMEZONE		"CST-8"
-#define DEF_NTP_SERVER0		"pool.ntp.org"
-#define DEF_NTP_SERVER1		"time.nist.gov"
+#define DEF_NTP_SERVER0		"asia.pool.ntp.org"
+#define DEF_NTP_SERVER1		"pool.ntp.org"
 #define DEF_HTTPS_CIPH_LIST	"DH+AESGCM:DH+AES256:DH+AES:DH+3DES:RSA+AES:RSA+3DES:!ADH:!MD5:!DSS"
 
 #endif

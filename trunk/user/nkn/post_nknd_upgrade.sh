@@ -7,8 +7,3 @@ elif [ -e /dev/sda ]; then
 else
 	NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCifs_NKN' | head -n 1 | awk '{print $2}')
 fi
-
-if [ -d "${NKN_USB_ROOT}/nkn/ChainDB" ]; then
-	/usr/bin/logger -t nknd "Reset ChainDB directory"
-	rm -rf "${NKN_USB_ROOT}/nkn/ChainDB"
-fi

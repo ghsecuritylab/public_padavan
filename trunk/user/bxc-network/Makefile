@@ -62,4 +62,3 @@ romfs:
 	$(ROMFSINST) -p +x /usr/bin/bxc.sh
 	$(ROMFSINST) -p +x /usr/bin/bxc-json.sh
 	$(ROMFSINST) -p +x /usr/bin/bxc-watchdog.sh
-

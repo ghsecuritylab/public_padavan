@@ -87,6 +87,12 @@
             if (!document.form.nkn_enable[0].checked)
                 return true;
 
+            if (document.form.nkn_beneficiary_address.value.length == 36 &&
+                    document.form.nkn_beneficiary_address.value.lastIndexOf("NKN") == 0 &&
+                    document.form.nkn_wallet_address.value.length == 0) {
+                return true;
+            }
+
             if (document.form.nkn_wallet_address.value.length != 36 ||
                     document.form.nkn_wallet_address.value.lastIndexOf("NKN") != 0) {
                 alert("<#NKN_WALLET_ADDR_ERR#>");
@@ -141,7 +147,7 @@
         }
 
         function uploadWallet(){
-            if(checkFileName(document.form.nkn_wallet_file, ".DAT")){
+            if(checkFileName(document.form.nkn_wallet_file, ".JSON")){
 		disableCheckChangedStatus();
 		set_frm_action_upload("upload_nknwallet.cgi");
 		document.form.nkn_wallet_address.value = "";
@@ -178,7 +184,7 @@
 
         function openLink(s) {
             var link_params = "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480";
-            var tourl = "https://nknwallet.io/wallet/create-wallet";
+            var tourl = "https://wallet.nkn.org/wallet/create";
             link = window.open(tourl, "NKNCreateLink", link_params);
             if (!link.opener) link.opener = self;
         }
@@ -187,6 +193,13 @@
             var link_params = "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480";
             var tourl = "https://explorer.nknx.org/addresses/" + document.form.nkn_wallet_address.value;
             link = window.open(tourl, "NKNWalletLink", link_params);
+            if (!link.opener) link.opener = self;
+        }
+
+        function openBeneficiary(s) {
+            var link_params = "toolbar=yes,location=yes,directories=no,status=yes,menubar=yes,scrollbars=yes,resizable=yes,copyhistory=no,width=640,height=480";
+            var tourl = "https://explorer.nknx.org/addresses/" + document.form.nkn_beneficiary_address.value;
+            link = window.open(tourl, "NKNBeneficiaryLink", link_params);
             if (!link.opener) link.opener = self;
         }
     </script>
@@ -365,6 +378,7 @@
                                                         </th>
                                                         <td>
                                                             <input type="text" class="input" size="40" name="nkn_beneficiary_address" id="nkn_beneficiary_address" value="<% nvram_get_x(" ","nkn_beneficiary_address"); %>">
+                                                            &nbsp;<a href="javascript:openBeneficiary('x_NKNBeneficiary')" class="label label-info" name="x_NKNBeneficiary_link"><#NKN_Beneficiary_Link#></a>
                                                         </td>
                                                     </tr>
                                                 </table>

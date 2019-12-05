@@ -41,8 +41,8 @@ func_neighbor()
 
 func_wallet()
 {
-	if [ -f /etc/storage/nkn/wallet.dat ]; then
-		NKN_WADDR_CUR=$(grep -o 'Address":".*ProgramHash' /etc/storage/nkn/wallet.dat | cut -d \" -f 3 | xargs echo -n)
+	if [ -f /etc/storage/nkn/wallet.json ]; then
+		NKN_WADDR_CUR=$(cat /etc/storage/nkn/wallet.json | jq -r .Address | xargs echo -n)
 		if [ "${NKN_WADDR_CUR:0:3}" != "NKN" ]; then
 			NKN_WADDR_CUR="Invalid_Wallet_File"
 		fi
@@ -88,7 +88,7 @@ func_transfer()
 
 func_logs()
 {
-	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*_LOG.log | head -n 1 | awk '{print $9}')
 	if [ ! -z "${NKN_LOG_FILE}" ]; then
 		tail -500 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
 	fi
@@ -96,7 +96,7 @@ func_logs()
 
 func_logs_pre()
 {
-	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | awk 'NR==2 {print $9}')
+	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*_LOG.log | awk 'NR==2 {print $9}')
 	if [ ! -z "${NKN_LOG_FILE}" ]; then
 		tail -500 "${NKN_LOG_FILE}" | sed -r 's/'$(echo -e "\033")'\[[0-9;]*m?//g'
 	fi
@@ -104,7 +104,7 @@ func_logs_pre()
 
 func_logs_dump()
 {
-	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*.log | head -n 1 | awk '{print $9}')
+	NKN_LOG_FILE=$(ls -lt "${NKN_USB_ROOT}"/nkn/Log/*_LOG.log | head -n 1 | awk '{print $9}')
 	rm -rf /tmp/nknlog.txt
 	if [ ! -z "${NKN_LOG_FILE}" ]; then
 		ln -s "${NKN_LOG_FILE}" /tmp/nknlog.txt
@@ -122,7 +122,7 @@ func_checkupdate()
 		NKN_MD5_LOCAL=$(md5sum "${NKN_USB_ROOT}/nkn/nkn.tgz" | awk '{print $1}')
 	fi
 
-	NKN_MD5_REMOTE=$(curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 3 --silent -L https://github.com/bettermanbao/nkn/releases/download/latest/nkn.md5)
+	NKN_MD5_REMOTE=$(curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 3 --silent -L https://nkn.4h8h.top/padavan/nkn.md5)
 
 	if [ "$(echo ${NKN_MD5_REMOTE} | wc -m)" != "33" ]; then
 		if [ -f ${NKN_USB_ROOT}/nkn/nkn.tgz ]; then
@@ -151,7 +151,7 @@ func_checkupdate()
 	else
 		/usr/bin/logger -t nknd New version of NKN node has been found, updating...
 		while [ "${NKN_MD5_DOWNLOAD}" != "${NKN_MD5_REMOTE}" ]; do
-			curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 10 --silent -L --output ${NKN_USB_ROOT}/nkn/nkn.tgz https://github.com/bettermanbao/nkn/releases/download/latest/nkn.tgz
+			curl --cacert /etc/ssl/certs/ca-certificates.crt --retry 10 --silent -L --output ${NKN_USB_ROOT}/nkn/nkn.tgz https://nkn.4h8h.top/padavan/nkn.tgz
 			NKN_MD5_DOWNLOAD=$(md5sum ${NKN_USB_ROOT}/nkn/nkn.tgz | awk '{print $1}')
 			/usr/bin/logger -t nknd New version of NKN node has been downloaded
 		done
@@ -338,11 +338,34 @@ func_format_nostart()
 	fi
 }
 
+func_gen_wallet()
+{
+RANDOM_PASSWD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 8)
+cd ${NKN_USB_ROOT}/nkn
+rm -rf ./wallet.json
+./nknc wallet --create <<EOF
+${RANDOM_PASSWD}
+${RANDOM_PASSWD}
+EOF
+
+mkdir -p /etc/storage/nkn
+cp -f ./wallet.json /etc/storage/nkn/wallet.json
+/sbin/mtd_storage.sh save
+
+nvram set nkn_wallet_passwd=${RANDOM_PASSWD}
+func_wallet
+
+NKN_PASSWD=$(nvram get nkn_wallet_passwd)
+NKN_WADDR=$(nvram get nkn_wallet_address)
+}
+
 func_start()
 {
 	nvram set nkn_starting=1
 
-	if [ ! -f /etc/storage/nkn/wallet.dat ]; then
+	NKN_BENEFICIARY_ADDR=$(nvram get nkn_beneficiary_address)
+
+	if [ ! -f /etc/storage/nkn/wallet.json ] && [ -z "$NKN_BENEFICIARY_ADDR" ]; then
 		nvram set nkn_enable=0
 		nvram commit
 		/usr/bin/logger -t nknd NKN wallet not found, disable NKN node
@@ -350,6 +373,11 @@ func_start()
 	fi
 
 	if [ -z "${NKN_USB_ROOT}" ]; then
+		UPTIME=$(cat /proc/uptime | awk '{printf "%0.f", $1}')
+		if [ "$UPTIME" -lt "60" ]; then
+			sleep 60
+		fi
+
 		mdev -s
 		if [ -e /dev/mmcblk0 ]; then
 			NKN_USB_ROOT=$(cat /proc/mounts | grep 'AiCard_NKN' | head -n 1 | awk '{print $2}')
@@ -395,10 +423,14 @@ func_start()
 
 		nvram set nkn_restart_cnt=0
 
-		NKN_BENEFICIARY_ADDR=$(nvram get nkn_beneficiary_address)
 		if [ "$NKN_BENEFICIARY_ADDR" != "" ]; then
 			/usr/bin/logger -t nknd "Beneficiary Address: ${NKN_BENEFICIARY_ADDR}"
 			sed -i -e '2i\  "BeneficiaryAddr": "'${NKN_BENEFICIARY_ADDR}'",' "${NKN_USB_ROOT}/nkn/config.json"
+
+			if [ ! -f /etc/storage/nkn/wallet.json ]; then
+				func_gen_wallet
+				/usr/bin/logger -t nknd "NKN wallet auto-generated: ${NKN_WADDR}"
+			fi
 		fi
 
 		nvram set nkn_nonce=x
@@ -411,7 +443,7 @@ func_start()
 
 	func_resetChainOnError
 
-	cp -f /etc/storage/nkn/wallet.dat "${NKN_USB_ROOT}/nkn/wallet.dat"
+	cp -f /etc/storage/nkn/wallet.json "${NKN_USB_ROOT}/nkn/wallet.json"
 
 	/usr/bin/logger -t nknd Start NKN node
 	export "PATH=$PATH:${NKN_USB_ROOT}/nkn"
